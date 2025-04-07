@@ -1,0 +1,528 @@
+/* CSS - Added margin-bottom to attribution */
+
+/* --- Global Styles & Theme --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* Common system font stack */
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa; /* Very light grey/blue */
+    color: #343a40; /* Dark grey/blue */
+    padding-bottom: 100px; /* Space for footer */
+}
+
+.container {
+    max-width: 960px;
+    margin: 20px auto;
+    padding: 25px;
+    background: #ffffff; /* White */
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #dee2e6; /* Lighter border */
+    margin: 25px 0;
+}
+
+a {
+    color: #007bff; /* Primary Blue */
+    text-decoration: none;
+}
+a:hover {
+    color: #0056b3; /* Darker Blue */
+    text-decoration: underline;
+}
+
+/* --- Header Logo --- */
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.header img {
+    max-width: 70%;
+    max-height: 100px;
+    height: auto;
+}
+.header a { /* Ensure logo link has no underline */
+    text-decoration: none;
+}
+
+/* --- Form Styling --- */
+.location-form {
+     margin-bottom: 30px;
+}
+
+.location-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600; /* Slightly bolder */
+    color: #495057;
+}
+
+.location-form select,
+.location-form input[type="text"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 1px solid #ced4da; /* Standard border */
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #fff;
+}
+.location-form select:focus,
+.location-form input[type="text"]:focus {
+    border-color: #80bdff; /* Blue focus */
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button section */
+.form-section-zip {
+    text-align: center;
+    margin-top: 10px; /* Space above button */
+}
+.form-section-zip label { /* Align ZIP label better */
+     margin-bottom: 10px;
+}
+
+.form-section-zip button {
+    display: inline-flex; /* Align icon and text */
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 220px;
+    padding: 12px 25px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: white;
+    background-color: #007bff; /* Primary Blue */
+    transition: background-color 0.2s ease;
+    vertical-align: middle;
+}
+.form-section-zip button:hover {
+    background-color: #0056b3; /* Darker Blue */
+}
+.form-section-zip button .icon {
+    margin-right: 10px;
+    font-size: 1.2em; /* Adjust icon size if needed */
+    line-height: 1; /* Ensure vertical alignment */
+}
+
+/* --- Messages --- */
+.message {
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 500;
+}
+.message.error {
+    background-color: #f8d7da; /* Light Red */
+    color: #721c24; /* Dark Red */
+    border: 1px solid #f5c6cb;
+}
+/* Info message style is kept for potential future use, but not for attribution now */
+.message.info {
+    background-color: #d1ecf1; /* Light Cyan */
+    color: #0c5460; /* Dark Cyan */
+    border: 1px solid #bee5eb;
+    font-size: 0.9em;
+}
+.message.warning { /* Used for 'no suggestions' etc */
+    background-color: #fff3cd; /* Light Yellow/Gold */
+    color: #856404; /* Dark Yellow/Gold */
+    border: 1px solid #ffeeba;
+}
+
+/* --- Results Styling --- */
+.results h2 {
+     text-align: center;
+     margin-bottom: 15px;
+     color: #0056b3; /* Darker Blue Title */
+}
+
+/* Current Info Bar */
+.current-info {
+    background-color: #e7f5ff; /* Light Blue Background */
+    border: 1px solid #b3d7ff; /* Lighter Blue Border */
+    padding: 12px 15px;
+    margin-bottom: 25px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.95em;
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping */
+    justify-content: center; /* Center items horizontally */
+    align-items: center; /* Center items vertically */
+    gap: 5px 15px; /* Row gap, Column gap */
+}
+.current-info .info-item {
+    white-space: nowrap; /* Prevent individual items wrapping */
+    flex-shrink: 0; /* Prevent items from shrinking too much */
+}
+.current-info strong {
+    color: #004085; /* Darker Blue for labels */
+}
+.current-info .details { /* Smaller text for details in brackets */
+    font-size: 0.9em;
+    color: #495057;
+    margin-left: 3px;
+}
+.current-info .weather-icon-small {
+    vertical-align: middle;
+    height: 1.6em; /* Adjust size as needed */
+    width: auto;
+    margin-left: 8px;
+}
+
+
+/* Clothing Suggestions Layout */
+.clothing-suggestions {
+    margin-bottom: 30px;
+}
+.clothing-suggestions h3 {
+    border-bottom: 2px solid #e9ecef; /* Light grey border */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #495057; /* Medium Grey */
+    font-weight: 600;
+}
+
+/* Prominent Item */
+.prominent-item {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.prominent-item .clothing-item {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 220px;
+    padding: 20px;
+    background-color: #fff;
+    border: 2px solid #ffc107; /* Gold Accent Border */
+    border-radius: 6px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+}
+.prominent-item .clothing-item img {
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    margin-bottom: 15px; /* Space between image and text */
+    border-radius: 4px;
+    background-color: #f8f9fa; /* Light bg for image area */
+    border: none; /* Ensure no default border */
+    outline: none; /* Ensure no default outline */
+}
+.prominent-item .clothing-item span {
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #343a40;
+}
+
+/* Other Items */
+/* The main container for all grouped items */
+.other-items {
+    /* No specific layout needed here, structure comes from inner elements */
+}
+
+/* Styling for the group headings (Tops, Bottoms, Accessories) */
+.other-items h4 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    color: #6c757d; /* Muted Grey */
+    text-transform: capitalize; /* Keep capitalize if desired */
+    text-align: center;
+    font-size: 1.2em; /* Make group headings slightly larger */
+    font-weight: 500;
+}
+
+/* Flex container for items WITHIN a specific group (Tops, Bottoms, or Acc.) */
+.clothing-type-group {
+     display: flex;
+     flex-wrap: wrap; /* THIS makes items wrap into rows */
+     justify-content: center; /* Center items horizontally */
+     gap: 15px; /* Space between items */
+     margin-bottom: 30px; /* Space below each group */
+     padding: 0 10px; /* Add slight horizontal padding if needed */
+}
+
+/* Individual clothing item card within the groups */
+.other-items .clothing-item {
+    display: flex;
+    flex-direction: column; /* Stack image and text vertically */
+    align-items: center; /* Center content horizontally */
+    text-align: center;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6; /* Light border on the container */
+    padding: 12px;
+    border-radius: 5px;
+    width: 110px; /* Base width - THIS controls how many fit per row */
+    box-sizing: border-box;
+    transition: box-shadow 0.2s ease;
+    vertical-align: top; /* Align items to the top if rows wrap unevenly */
+}
+.other-items .clothing-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Subtle hover effect */
+}
+
+.other-items .clothing-item img {
+    width: 65px;
+    height: 65px;
+    object-fit: cover;
+    margin-bottom: 10px; /* Space between image and text below */
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    border: none; /* Explicitly remove border from image */
+    outline: none; /* Explicitly remove outline from image */
+}
+.other-items .clothing-item span {
+    /* Name text */
+    flex-grow: 1; /* Allow text to take space if needed */
+    font-size: 0.9em;
+    line-height: 1.3;
+    color: #495057;
+    width: 100%; /* Ensure span takes full width for centering */
+}
+
+
+/* Forecast Summary (Detailed View with Background) */
+.forecast-summary {
+    border: 1px solid #dee2e6; /* Lighter border */
+    padding: 0; /* Remove padding from outer container */
+    margin-top: 30px; /* Space above forecast details */
+    border-radius: 5px;
+    position: relative; /* Needed for overlay positioning */
+    overflow: hidden; /* Keep overlay contained */
+    background-size: cover; /* Cover the div */
+    background-position: center; /* Center the background */
+    background-repeat: no-repeat;
+    color: #ffffff; /* Default text color for contrast */
+}
+/* Overlay for readability */
+.forecast-summary.has-background::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Dark overlay, adjust opacity */
+    z-index: 1; /* Below content */
+    border-radius: inherit; /* Match parent rounding */
+}
+/* Content wrapper to sit above overlay */
+.forecast-summary .forecast-content {
+    position: relative; /* Sit above overlay */
+    z-index: 2;
+    padding: 25px; /* Add padding here */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Add shadow for better readability */
+}
+
+.forecast-summary h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #ffffff; /* White title */
+    text-align: center;
+    font-weight: 600;
+}
+.forecast-summary p {
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+.forecast-summary strong {
+    color: #f0f0f0; /* Slightly off-white for labels */
+}
+.forecast-summary i {
+    color: #e0e0e0; /* Lighter italic text */
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+
+/* --- Footer Styling --- */
+footer {
+    background-color: #e9ecef; /* Light Grey/Blue */
+    padding: 15px 0 10px 0;
+    border-top: 1px solid #dee2e6;
+    margin-top: 40px;
+    position: relative;
+}
+
+/* Container for interactive elements */
+.footer-content {
+    max-width: 960px; /* Match container width */
+    margin: 0 auto 15px auto;
+    padding: 0 25px; /* Match container padding */
+    display: flex;
+    justify-content: flex-end; /* Push home button to the right */
+    align-items: center;
+}
+
+/* Style the footer home button */
+.footer-home-button {
+    display: inline-flex; /* Align icon and text nicely */
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #6c757d; /* Secondary Grey */
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+.footer-home-button:hover {
+    background-color: #5a6268; /* Darker Grey */
+    color: white;
+    text-decoration: none;
+}
+.footer-home-button .icon {
+    margin-right: 8px;
+    font-size: 1.3em;
+    line-height: 1;
+}
+
+/* Container for the links/copyright below */
+.footer-links {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 25px;
+    text-align: center;
+    font-size: 0.85em;
+    color: #6c757d; /* Muted text color */
+}
+.footer-links p {
+    margin: 5px 0;
+}
+.footer-links a {
+    color: #0056b3; /* Darker Blue for links */
+    text-decoration: none;
+    margin: 0 8px;
+}
+.footer-links a:hover {
+    text-decoration: underline;
+}
+/* Attribution specific styling */
+.footer-links .attribution {
+    margin-top: 10px; /* Space above */
+    margin-bottom: 10px; /* Space below */
+    font-size: 0.95em; /* Slightly larger attribution */
+    color: #6c757d; /* Match surrounding text */
+}
+.footer-links .attribution a { /* Style links within attribution */
+     color: #0056b3;
+}
+
+
+/* Screen reader only class */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+        padding: 15px;
+    }
+    .header img {
+        max-height: 80px;
+    }
+    .prominent-item .clothing-item {
+        max-width: 180px;
+    }
+    .prominent-item .clothing-item img {
+        width: 100px;
+        height: 100px;
+    }
+    .other-items .clothing-item {
+        width: 95px; /* Slightly smaller on tablets */
+    }
+     .other-items .clothing-item img {
+        width: 55px;
+        height: 55px;
+    }
+    .current-info {
+        font-size: 0.9em;
+        padding: 10px;
+        gap: 3px 10px; /* Adjust gap for tablet */
+    }
+    .footer-content {
+        padding: 0 15px;
+    }
+    .footer-links {
+        padding: 0 15px;
+    }
+     .clothing-type-group {
+        gap: 12px; /* Adjust gap */
+     }
+}
+
+@media (max-width: 480px) {
+    .prominent-item .clothing-item {
+        max-width: 160px;
+        padding: 15px;
+    }
+     .prominent-item .clothing-item img {
+        width: 90px;
+        height: 90px;
+        margin-bottom: 10px;
+    }
+    .other-items .clothing-item {
+        width: 85px; /* Smaller width for phones */
+        padding: 8px;
+    }
+    .other-items .clothing-item img {
+        width: 50px;
+        height: 50px;
+    }
+     .clothing-type-group {
+         gap: 10px; /* Reduce gap on phones */
+     }
+    .form-section-zip button {
+        min-width: 180px;
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+     .current-info {
+        font-size: 0.88em; /* Slightly adjust font size */
+        text-align: center; /* Center align text */
+        justify-content: center; /* Center flex items */
+    }
+
+    .footer-home-button {
+        font-size: 0.9em;
+        padding: 8px 15px;
+    }
+    /* Forecast summary on mobile */
+    .forecast-summary .forecast-content {
+        padding: 15px; /* Reduce padding */
+    }
+     .forecast-summary h3 {
+        font-size: 1.1em;
+    }
+     .forecast-summary p {
+        font-size: 0.9em;
+    }
+    .footer-links .attribution {
+        font-size: 0.9em; /* Slightly smaller on mobile */
+    }
+}

@@ -1,0 +1,10 @@
+<IfModule headers_module>
+  header set X-Clacks-Overhead "GNU Terry Pratchett"
+</IfModule> 
+# no directory listing
+Options -Indexes
+
+RewriteEngine On 
+RewriteCond %{HTTP_HOST} ^whatjacket.timnetworks\.net [NC] 
+RewriteCond %{SERVER_PORT} 80 
+RewriteRule ^/?$ "https\:\/\/whatjacket.timnetworks\.net\/" [R=301,L]

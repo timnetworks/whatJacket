@@ -1,393 +1,490 @@
-<?php
+<?php // FILE: config.php
 
 /**
- * Configuration for whatJacket Application
+ * Configuration for whatJacket Application v0.8.2
  *
  * All user-modifiable settings should be placed here.
  */
 
 // --- API Settings ---
-
-// User agent required by NOAA API Terms of Service.
-// Format: AppName/Version (ContactInfo; WebsiteOptional)
-define('API_USER_AGENT', 'whatJacketAPPv10 (abuse@timnetworks.com)');
-
-// Base URL for the NOAA API
+define('API_USER_AGENT', 'whatJacketApp/0.8.2 (abuse@timnetworks.com)');
 define('NOAA_API_BASE_URL', 'https://api.weather.gov');
-
-// Base URL for OpenStreetMap Nominatim API (for ZIP code geocoding)
-// Requires attribution if used. See: https://operations.osmfoundation.org/policies/nominatim/
 define('GEOCODING_API_BASE_URL', 'https://nominatim.openstreetmap.org/search');
 
 // --- Application Settings ---
-
-// Path to the header logo image relative to the web root.
-// Make sure it starts with './' or '/' as appropriate for your setup.
+define('APP_VERSION', '0.8.1');
+define('APP_TITLE', 'whatJacket');
+define('APP_NAME_SHORT', 'whatJacket');
+define('APP_URL', 'https://whatjacket.timnetworks.net/');
 define('LOGO_IMAGE_PATH', './img/wj-logo.png');
+define('OG_IMAGE_PATH', './img/wj-logo-og.png');
+define('DEFAULT_TEMP_UNIT', 'F'); // 'F' or 'C'
+define('DEFAULT_CATEGORY', 'Casual');
 
-// Available clothing categories
+// --- UI Theme ---
+define('THEME_COLOR', '#007bff');       // Browser UI chrome
+define('BACKGROUND_COLOR', '#f0e68c'); // Manifest background
+
+// --- Activity Categories & Icons (Example Icons - Use real paths/classes) ---
+// Assuming Font Awesome is NOT used based on user's HTML head, provide simple text/emoji fallbacks
 define('CATEGORIES', [
-    'Casual',
-    'Professional',
-    'Hiking',
-    'Tourism'
+    'Casual' => ['label' => 'Casual', 'icon' => '🧑', 'img' => './img/icons/casual.png'], // Added image path example
+    'Professional' => ['label' => 'Professional', 'icon' => '💼', 'img' => './img/icons/professional.png'],
+    'Hiking' => ['label' => 'Hiking', 'icon' => '🚶', 'img' => './img/icons/hiking.png'], // Using walking emoji
+    'Tourism' => ['label' => 'Tourism', 'icon' => '📷', 'img' => './img/icons/tourism.png'],
 ]);
 
-// Temperature Scale Mapping (0-10 scale represents 0°F to 100°F)
-define('TEMP_SCALE_MIN_F', 0);
-define('TEMP_SCALE_MAX_F', 100);
+// --- Temperature Bands (Revised & Expanded) ---
+// Values roughly based on Celsius for definition, Fahrenheit calculated.
+// Added 'target_thermal_score' as a *starting point* for layering logic.
+// Activity/wind/wetness will modify the required score.
+define('TEMP_BANDS', [
+    //         C Range        F Range          Target Score (Base)
+    'Dangerous' => ['min_c' => 35, 'min_f' => 95,  'target_thermal_score' => 0],   // >= 35C / 95F
+    'Hot'       => ['min_c' => 27, 'max_c' => 34.9,'min_f' => 81, 'max_f' => 94.9,'target_thermal_score' => 0],   // 27-34.9C / 81-94.9F
+    'Warm'      => ['min_c' => 20, 'max_c' => 26.9,'min_f' => 68, 'max_f' => 80.9,'target_thermal_score' => 1],   // 20-26.9C / 68-80.9F
+    'Mild'      => ['min_c' => 13, 'max_c' => 19.9,'min_f' => 55, 'max_f' => 67.9,'target_thermal_score' => 2],   // 13-19.9C / 55-67.9F
+    'Crisp'     => ['min_c' => 7,  'max_c' => 12.9,'min_f' => 45, 'max_f' => 54.9,'target_thermal_score' => 4],   // 7-12.9C / 45-54.9F
+    'Cold'      => ['min_c' => 0,  'max_c' => 6.9, 'min_f' => 32, 'max_f' => 44.9,'target_thermal_score' => 6],   // 0-6.9C / 32-44.9F
+    'Frigid'    => ['min_c' => -10,'max_c' => -0.1,'min_f' => 14, 'max_f' => 31.9,'target_thermal_score' => 8],  // -10 to -0.1C / 14-31.9F
+    'Freezing'  => [             'max_c' => -10.1,            'max_f' => 13.9,'target_thermal_score' => 10]  // <= -10.1C / 13.9F (Overlap handled by logic)
+]);
 
-// Maximum wind speed (mph) to suggest an umbrella
-define('UMBRELLA_MAX_WIND_MPH', 20);
+// --- Condition Identification Keywords (Used in get_processed_forecast) ---
+define('CONDITION_KEYWORDS', [
+    'is_severe' => ['severe', 'hurricane', 'tornado', 'tropical storm', 'blizzard', 'dangerous', 'warning', 'watch'],
+    'is_thunderstorm' => ['thunderstorm', 't-storm'],
+    'is_snowy' => ['snow', 'sleet', 'ice', 'flurries', 'winter mix'], // 'ice', 'blizzard' also covered by severe
+    'is_rainy' => ['rain', 'showers', 'precipitation', 'storm'], // General rain
+    'is_drizzling' => ['drizzle', 'light rain', 'mist'],
+    'is_foggy' => ['fog', 'haze', 'misty'], // Separate from drizzle
+    'is_windy' => ['windy', 'breezy', 'gusts'], // Also check MPH threshold
+    'is_cloudy' => ['cloudy', 'overcast', 'clouds'],
+    'is_sunny' => ['sunny', 'clear'],
+    'is_scorching' => [], // Primarily driven by 'Dangerous' temp band
+]);
 
-// Wind speed (mph) threshold to consider it "Windy" for background/summary
-define('WINDY_THRESHOLD_MPH', 15);
+// --- Condition Thresholds ---
+define('UMBRELLA_MAX_WIND_MPH', 18);
+define('WINDY_THRESHOLD_MPH', 15);       // MPH to trigger 'is_windy' flag regardless of keywords
+define('RAIN_PROBABILITY_THRESHOLD', 30); // % chance to consider it potentially wet
+define('HEAVY_RAIN_PROBABILITY_THRESHOLD', 60); // % chance for heavier rain gear / 'is_very_wet' flag
 
 // --- Standardized Footer Links ---
 define('FOOTER_LINKS', [
-    ['text' => 'NOAA', 'url' => 'https://www.weather.gov/documentation/services-web-api'],
-    ['text' => 'Nominatim', 'url' => 'https://www.nominatim.com'],
-    ['text' => 'OpenStreetMap', 'url' => 'https://www.openstreetmap.org/copyright'],
-    ['text' => 'timnetworks', 'url' => 'https://timnetworks.com/']
+    ['text' => 'NOAA API', 'url' => 'https://www.weather.gov/documentation/services-web-api'],
+    ['text' => 'Nominatim/OSM', 'url' => 'https://operations.osmfoundation.org/policies/nominatim/'],
+    ['text' => 'project on GitHub', 'url' => 'https://github.com/timnetworks/whatjacket']
 ]);
 
-// --- Forecast Background Images ---
-// Maps simplified condition keys (from get_simple_condition_key) to image paths.
-// Paths should be relative to the script location (e.g., start with './img/backgrounds/')
-// or absolute web paths (start with '/'). Ensure these images exist!
+// --- Forecast Background Images (Map simplified condition keys) ---
 define('FORECAST_BACKGROUNDS', [
-    'Severe'   => './img/backgrounds/severe.jpg',      // Tornado, Hurricane, Severe T-Storm
-    'Snowy'    => './img/backgrounds/snowy.jpg',       // Snow, Sleet, Blizzard, Ice
-    'Rainy'    => './img/backgrounds/rainy.jpg',       // Rain, Showers, Drizzle, T-Storm
-    'Windy'    => './img/backgrounds/windy.jpg',       // If wind speed >= WINDY_THRESHOLD_MPH and not rainy/snowy
-    'Cloudy'   => './img/backgrounds/cloudy.jpg',      // Cloudy, Overcast, Fog, Partly/Mostly Cloudy
-    'Sunny'    => './img/backgrounds/sunny.jpg',       // Sunny, Clear
-    'Variable' => './img/backgrounds/variable.jpg',    // Default/fallback
+    'Severe'   => './img/backgrounds/severe.jpg',
+    'Thunderstorm' => './img/backgrounds/severe.jpg', // Reuse severe
+    'Snowy'    => './img/backgrounds/snowy.jpg',
+    'Rainy'    => './img/backgrounds/rainy.jpg',     // Covers heavy rain/showers
+    'Drizzling'=> './img/backgrounds/rainy.jpg',     // Reuse rainy
+    'Windy'    => './img/backgrounds/windy.jpg',
+    'Foggy'    => './img/backgrounds/cloudy.jpg',    // Reuse cloudy
+    'Cloudy'   => './img/backgrounds/cloudy.jpg',
+    'Sunny'    => './img/backgrounds/sunny.jpg',     // Clear/Sunny
+    'Variable' => './img/backgrounds/variable.jpg',  // Default/Mixed/Partly Cloudy
+    'Scorching'=> './img/backgrounds/sunny.jpg',     // Reuse sunny
 ]);
 
 // --- Simplified Condition Display Names ---
-// Optional: Map keys from get_simple_condition_key to nicer display names
 define('SIMPLE_CONDITION_DISPLAY', [
     'Severe'   => 'Severe Weather',
+    'Thunderstorm' => 'Thunderstorms',
     'Snowy'    => 'Snowy',
     'Rainy'    => 'Rainy',
-    'Windy'    => 'Windy', // Now triggered at 15mph+
+    'Drizzling'=> 'Drizzle/Mist',
+    'Windy'    => 'Windy',
+    'Foggy'    => 'Foggy/Misty',
     'Cloudy'   => 'Cloudy',
-    'Sunny'    => 'Sunny',
+    'Sunny'    => 'Sunny/Clear',
     'Variable' => 'Variable Conditions',
+    'Scorching'=> 'Scorching Heat', // Driven by temp band mainly
 ]);
 
 // --- Mapping from Item Type to Display Group ---
-// Maps the 'type' defined in CLOTHING_ITEMS to one of the display groups.
-// Ensure ALL types used in CLOTHING_ITEMS are listed here.
 define('TYPE_TO_DISPLAY_GROUP_MAP', [
-    'shirt'     => 'Tops',
-    'sweater'   => 'Tops',
-    'jacket'    => 'Tops',
-    'coat'      => 'Tops',
-    'pants'     => 'Bottoms',
-    'shorts'    => 'Bottoms',
-    'socks'     => 'Bottoms',
-    'shoes'     => 'Bottoms',
-    'hat'       => 'Accessories',
-    'gloves'    => 'Accessories',
-    'scarf'     => 'Accessories',
-    'umbrella'  => 'Accessories',
-    'sunglasses'=> 'Accessories',
-    'accessory' => 'Accessories', // Catch-all for generic accessories
+    // Tops
+    'shirt'     => 'Tops', 'sweater'   => 'Tops', 'jacket'    => 'Tops', 'coat'      => 'Tops',
+    // Bottoms
+    'base_pants'=> 'Bottoms', 'pants'     => 'Bottoms', 'shorts'    => 'Bottoms',
+    // Footwear
+    'socks'     => 'Footwear', 'shoes'     => 'Footwear', 'sneakers'  => 'Footwear', 'boots'     => 'Footwear',
+    // Accessories
+    'hat'       => 'Accessories', 'gloves'    => 'Accessories', 'scarf'     => 'Accessories',
+    'umbrella'  => 'Accessories', 'sunglasses'=> 'Accessories', 'accessory' => 'Accessories',
 ]);
 
-
-// --- Clothing Item Definitions ---
-/*
- * Structure: (See previous version for full details)
- * ... keys ...
- *  'type'          => (string) MUST exist as a key in TYPE_TO_DISPLAY_GROUP_MAP above.
- *
- * Temperature Scale Reminder: 0=0F, 1=10F, 2=20F, 3=30F, 4=40F, 5=50F, 6=60F, 7=70F, 8=80F, 9=90F, 10=100F
- * precip_threshold: Minimum percentage chance of precipitation to consider item.
- * wind_threshold: Minimum wind speed (mph) to consider item (often for windproof items).
- */
+// --- Clothing Item Definitions v2.1 ---
+/* Added 'thermal_value' (approximate):
+ * 0: None (T-shirt, shorts, rain shell)
+ * 1: Light (Long sleeve shirt, light sweater, chinos, sneakers, light socks)
+ * 2: Medium (Fleece, jeans, standard socks, dress shoes)
+ * 3: Heavy (Heavy sweater, wool socks, light insulated jacket)
+ * 4: Very Heavy (Parka, insulated pants, heavy boots, heavy gloves)
+ * Note: This is simplified. Real-world values vary greatly. Used for relative comparison.
+*/
 define('CLOTHING_ITEMS', [
-    // --- Shirts (Type: 'shirt' maps to 'Tops') ---
-    'shirt-casual-light' => [ // E.g., T-shirt
-        'name' => 'Light Casual Shirt', 'type' => 'shirt', 'category' => ['Casual','Tourism'], 'thermal' => 'light',
-        'temp_min' => 6, 'temp_max' => 10, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shirt_casual_light.jpg', 'img_fallback' => './img/shirt.jpg' // NEEDS IMAGE
+
+    // === TOPS ===
+    // -- Base Layer Shirts --
+    'shirt-base-tee' => [
+        'name' => 'White Tee', 'type' => 'shirt', 'layer' => 'base', 'category' => ['Casual','Tourism','Hiking','Professional'],
+        'temp_bands' => ['Dangerous', 'Hot', 'Warm', 'Mild', 'Crisp', 'Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'none', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'none', 'breathability' => 'high', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_tee.jpg', 'img_fallback' => './img/shirt.jpg'
     ],
-    'shirt-casual-medium' => [ // E.g., Long-sleeve T-shirt, flannel
-        'name' => 'Medium Casual Shirt', 'type' => 'shirt', 'category' => ['Casual','Tourism'], 'thermal' => 'medium',
-        'temp_min' => 4, 'temp_max' => 7, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shirt_casual_medium.jpg', 'img_fallback' => './img/shirt.jpg' // NEEDS IMAGE
+    'shirt-base-casual-light' => [
+        'name' => 'Casual Shirt', 'type' => 'shirt', 'layer' => 'base', 'category' => ['Casual','Tourism','Hiking','Professional'],
+        'temp_bands' => ['Dangerous', 'Hot', 'Warm'], 'water_resistance' => 'none', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'none', 'breathability' => 'high', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_casual_light.jpg', 'img_fallback' => './img/shirt.jpg'
     ],
-     'shirt-professional-light' => [ // E.g., Dress shirt
-        'name' => 'Light Pro Shirt', 'type' => 'shirt', 'category' => 'Professional', 'thermal' => 'light',
-        'temp_min' => 6, 'temp_max' => 9, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shirt_professional_light.jpg', 'img_fallback' => './img/shirt.jpg' // NEEDS IMAGE
+    'shirt-base-casual-medium' => [
+        'name' => 'Long Sleeve Base', 'type' => 'shirt', 'layer' => 'base', 'category' => ['Casual','Tourism','Hiking'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold'], 'water_resistance' => 'none', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_casual_medium.jpg', 'img_fallback' => './img/shirt.jpg'
     ],
-    'shirt-professional-medium' => [ // E.g., Heavier dress shirt
-        'name' => 'Medium Pro Shirt', 'type' => 'shirt', 'category' => 'Professional', 'thermal' => 'medium',
-        'temp_min' => 4, 'temp_max' => 7, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shirt_professional_medium.jpg', 'img_fallback' => './img/shirt.jpg' // NEEDS IMAGE
+    'shirt-base-casual-heavy' => [
+        'name' => 'Long Sleeve Base', 'type' => 'shirt', 'layer' => 'base', 'category' => ['Casual','Tourism','Hiking'],
+        'temp_bands' => ['Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'none', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_casual_heavy.jpg', 'img_fallback' => './img/shirt.jpg'
     ],
-     'shirt-hiking-light' => [ // E.g., Synthetic short-sleeve
-        'name' => 'Light Hiking Shirt', 'type' => 'shirt', 'category' => 'Hiking', 'thermal' => 'light',
-        'temp_min' => 5, 'temp_max' => 10, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => true, // Often UV protective
-        'img' => './img/shirt_hiking_light.jpg', 'img_fallback' => './img/shirt.jpg' // NEEDS IMAGE
+     'shirt-base-professional-light' => [
+        'name' => 'Light Dress Shirt', 'type' => 'shirt', 'layer' => 'base', 'category' => 'Professional',
+        'temp_bands' => ['Dangerous', 'Hot'], 'water_resistance' => 'none', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_professional_light.jpg', 'img_fallback' => './img/shirt.jpg'
     ],
-    'shirt-hiking-medium' => [ // E.g., Synthetic long-sleeve base layer
-        'name' => 'Medium Hiking Shirt', 'type' => 'shirt', 'category' => 'Hiking', 'thermal' => 'medium',
-        'temp_min' => 3, 'temp_max' => 6, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shirt_hiking_medium.jpg', 'img_fallback' => './img/shirt.jpg' // NEEDS IMAGE
+     'shirt-base-professional-medium' => [
+        'name' => 'Medium Dress Shirt', 'type' => 'shirt', 'layer' => 'base', 'category' => 'Professional',
+        'temp_bands' => ['Warm', 'Mild', 'Crisp'], 'water_resistance' => 'none', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_professional_medium.jpg', 'img_fallback' => './img/shirt.jpg'
+    ],
+     'shirt-base-professional-heavy' => [
+        'name' => 'Heavy Dress Shirt', 'type' => 'shirt', 'layer' => 'base', 'category' => 'Professional',
+        'temp_bands' => ['Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'none', 'insulation' => 'medium', 'thermal_value' => 2,
+        'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_professional_heavy.jpg', 'img_fallback' => './img/shirt.jpg'
+    ],
+    'shirt-base-hiking-light-sun' => [
+        'name' => 'Sleeveless Shirt', 'type' => 'shirt', 'layer' => 'base', 'category' => 'Hiking',
+        'temp_bands' => ['Hot', 'Warm', 'Mild', 'Crisp'], 'water_resistance' => 'none', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'light', 'breathability' => 'high', 'sun_protection' => true, 'special_conditions' => [],
+        'img' => './img/shirt_hiking_light.jpg', 'img_fallback' => './img/shirt.jpg'
+    ],
+     'shirt-base-hiking-medium' => [
+        'name' => 'Hiking Base Layer (Med)', 'type' => 'shirt', 'layer' => 'base', 'category' => 'Hiking',
+        'temp_bands' => ['Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'none', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'none', 'breathability' => 'high', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_hiking_medium.jpg', 'img_fallback' => './img/shirt.jpg'
+    ],
+     'shirt-base-thermal' => [
+        'name' => 'Thermal Base Layer', 'type' => 'shirt', 'layer' => 'base',
+        'category' => ['Hiking', 'Casual', 'Tourism'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'none', 'insulation' => 'medium', 'thermal_value' => 2,
+        'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shirt_base_thermal.jpg', 'img_fallback' => './img/shirt.jpg'
     ],
 
-    // --- Sweaters ---
-    'sweater-casual-light' => [ // E.g., Light V-neck, thin hoodie
-        'name' => 'Light Sweater/ Hoodie', 'type' => 'sweater', 'category' => ['Casual', 'Tourism'], 'thermal' => 'light',
-        'temp_min' => 6, 'temp_max' => 8, 'precip_threshold' => 0, 'wind_threshold' => 5, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/sweater_casual_light.jpg', 'img_fallback' => './img/sweater.jpg' // NEEDS IMAGE and fallback
+    // -- Mid Layer Sweaters/Fleece --
+    'sweater-mid-casual-light' => [
+        'name' => 'Light Hoodie', 'type' => 'sweater', 'layer' => 'mid', 'category' => ['Casual', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp'], 'water_resistance' => 'none', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'light', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/sweater_casual_light.jpg', 'img_fallback' => './img/sweater.jpg'
     ],
-    'sweater-casual-medium' => [ // E.g., Fleece, thicker hoodie, wool sweater
-        'name' => 'Medium Sweater/ Fleece', 'type' => 'sweater', 'category' => ['Casual', 'Tourism', 'Hiking'], 'thermal' => 'medium',
-        'temp_min' => 4, 'temp_max' => 7, 'precip_threshold' => 0, 'wind_threshold' => 10, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, // Fleece is somewhat wind resistant
-        'sunshielding' => false,
-        'img' => './img/sweater_casual_medium.jpg', 'img_fallback' => './img/sweater.jpg' // NEEDS IMAGE
+    'sweater-mid-casual-medium' => [
+        'name' => 'Sweatshirt', 'type' => 'sweater', 'layer' => 'mid', 'category' => ['Casual', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold'], 'water_resistance' => 'light', 'insulation' => 'medium', 'thermal_value' => 2,
+        'wind_resistance' => 'medium', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/sweater_casual_medium.jpg', 'img_fallback' => './img/sweater.jpg'
     ],
-    'sweater-professional-medium' => [ // E.g., Dressier V-neck or crew neck
-        'name' => 'Medium Pro Sweater', 'type' => 'sweater', 'category' => 'Professional', 'thermal' => 'medium',
-        'temp_min' => 4, 'temp_max' => 7, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/sweater_professional_medium.jpg', 'img_fallback' => './img/sweater.jpg' // NEEDS IMAGE
+    'sweater-mid-casual-heavy' => [
+        'name' => 'Heavy Sweater', 'type' => 'sweater', 'layer' => 'mid', 'category' => ['Casual', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Crisp', 'Cold', 'Frigid'], 'water_resistance' => 'light', 'insulation' => 'heavy', 'thermal_value' => 3,
+        'wind_resistance' => 'medium', 'breathability' => 'low', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/sweater_casual_heavy.jpg', 'img_fallback' => './img/sweater.jpg'
     ],
-
-    // --- Pants & Shorts ---
-    'shorts-casual' => [ // RENAMED from pants-casual-light, NEW type 'shorts'
-        'name' => 'Shorts', 'type' => 'shorts', 'category' => ['Casual', 'Tourism', 'Hiking'], 'thermal' => 'light',
-        'temp_min' => 7, 'temp_max' => 10, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => ['sunny', 'clear', 'mostly sunny', 'partly cloudy'], // Good for sun
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shorts_casual.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
-    ],
-    'jeans-casual' => [ // RENAMED from pants-casual-medium
-        'name' => 'Jeans', 'type' => 'pants', 'category' => ['Casual', 'Tourism'], 'thermal' => 'medium',
-        'temp_min' => 3, 'temp_max' => 8, 'precip_threshold' => 10, 'wind_threshold' => 10, // Ok in light wind/drizzle, bad if soaked
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/jeans_casual.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
-    ],
-    'chinos-casual-professional' => [ // NEW
-        'name' => 'Chinos/ Khakis', 'type' => 'pants', 'category' => ['Casual', 'Professional', 'Tourism'], 'thermal' => 'medium',
-        'temp_min' => 4, 'temp_max' => 8, 'precip_threshold' => 15, 'wind_threshold' => 5, // Dry faster than jeans
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/chinos_casual_professional.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
-    ],
-    'slacks-professional' => [ // RENAMED from pants-professional-medium
-        'name' => 'Slacks/ Dress Pants', 'type' => 'pants', 'category' => 'Professional', 'thermal' => 'medium',
-        'temp_min' => 4, 'temp_max' => 8, 'precip_threshold' => 10, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/slacks_professional.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
-    ],
-     'pants-hiking-light' => [
-        'name' => 'Hiking Pants', 'type' => 'pants', 'category' => 'Hiking', 'thermal' => 'light',
-        'temp_min' => 7, 'temp_max' => 10, 'precip_threshold' => 25, 'wind_threshold' => 15, // Often quick-dry
-        'waterproof' => false, 'windproof' => true, 'sunshielding' => true,
-        'img' => './img/pants_hiking_light.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
-    ],
-     'pants-hiking-medium' => [
-        'name' => 'Hiking Pants', 'type' => 'pants', 'category' => 'Hiking', 'thermal' => 'medium',
-        'temp_min' => 3, 'temp_max' => 6, 'precip_threshold' => 25, 'wind_threshold' => 15, // Often quick-dry, wind resistant
-        'waterproof' => false, 'windproof' => true, 'sunshielding' => true,
-        'img' => './img/pants_hiking_medium.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
-    ],
-    'pants-hiking-heavy' => [
-        'name' => 'Heavy Hiking Pants', 'type' => 'pants', 'category' => 'Hiking', 'thermal' => 'heavy',
-        'temp_min' => 0, 'temp_max' => 4, 'precip_threshold' => 30, 'wind_threshold' => 20,
-        'waterproof' => false, 'windproof' => true, 'sunshielding' => false, // Maybe waterproof if softshell
-        'img' => './img/pants_hiking_heavy.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
-    ],
-    'pants-insulated' => [ // NEW for cold weather
-        'name' => 'Insulated Pants', 'type' => 'pants', 'category' => ['Casual', 'Hiking', 'Tourism'], 'thermal' => 'heavy',
-        'temp_min' => 0, 'temp_max' => 4, 'precip_threshold' => 20, 'wind_threshold' => 15, 'conditions' => ['snow', 'sleet', 'cold'], // Check logic for 'cold' condition
-        'waterproof' => false, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/pants_insulated.jpg', 'img_fallback' => './img/pants.jpg' // NEEDS IMAGE
+    'sweater-mid-professional' => [
+        'name' => 'Professional Sweater', 'type' => 'sweater', 'layer' => 'mid', 'category' => 'Professional',
+        'temp_bands' => ['Mild', 'Crisp', 'Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'light', 'insulation' => 'medium', 'thermal_value' => 2,
+        'wind_resistance' => 'light', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/sweater_professional_medium.jpg', 'img_fallback' => './img/sweater.jpg'
     ],
 
-    // --- Jackets / Coats ---
-    'windbreaker-casual-light' => [ // NEW
-        'name' => 'Windbreaker', 'type' => 'jacket', 'category' => ['Casual', 'Tourism', 'Hiking'], 'thermal' => 'light',
-        'temp_min' => 6, 'temp_max' => 8, 'precip_threshold' => 10, 'wind_threshold' => 10, // Specific for wind
-        'waterproof' => false, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/windbreaker_casual_light.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+    // -- Outer Layer Jackets/Coats -- (Less critical for *core* problem, but reviewed)
+    'jacket-outer-casual-windbreaker' => [
+        'name' => 'Windbreaker', 'type' => 'jacket', 'layer' => 'outer', 'category' => ['Casual', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp'], 'water_resistance' => 'light', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'proof', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/windbreaker_casual_light.jpg', 'img_fallback' => './img/jacket.jpg'
     ],
-    'jacket-casual-light' => [ // E.g., Denim jacket, light bomber - less windproof than windbreaker
-        'name' => 'Light Casual Jacket', 'type' => 'jacket', 'category' => ['Casual', 'Tourism'], 'thermal' => 'light',
-        'temp_min' => 6, 'temp_max' => 8, 'precip_threshold' => 10, 'wind_threshold' => 5, // Wider temp range
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/jacket_casual_light.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+    'jacket-outer-casual-light' => [
+        'name' => 'Light Casual Jacket', 'type' => 'jacket', 'layer' => 'outer', 'category' => ['Casual', 'Tourism'],
+        'temp_bands' => ['Mild', 'Crisp'], 'water_resistance' => 'light', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'light', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/jacket_casual_light.jpg', 'img_fallback' => './img/jacket.jpg'
     ],
-     'raincoat-general' => [ // NEW - General purpose raincoat
-        'name' => 'Raincoat', 'type' => 'jacket', 'category' => ['Casual', 'Professional', 'Tourism', 'Hiking'], 'thermal' => 'light', // Thermal is light as it's often a shell
-        'temp_min' => 4, 'temp_max' => 9, // Wide range, worn over other clothes
-        'precip_threshold' => 35, // Lower threshold to trigger more readily
-        'wind_threshold' => 0, // Rain is the trigger, windproof helps
-        'conditions' => ['rain', 'showers', 'drizzle', 'thunderstorms'],
-        'waterproof' => true, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/raincoat_general.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+     'jacket-outer-general-rain' => [
+        'name' => 'Raincoat', 'type' => 'jacket', 'layer' => 'outer', 'category' => ['Casual', 'Professional', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Hot', 'Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'proof', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'sun_protection' => false, 'special_conditions' => ['rain', 'drizzle'],
+        'img' => './img/raincoat_general.jpg', 'img_fallback' => './img/jacket.jpg'
     ],
-    'jacket-casual-medium' => [ // E.g., Heavier bomber, lined jacket
-        'name' => 'Medium Casual Jacket', 'type' => 'jacket', 'category' => ['Casual', 'Tourism'], 'thermal' => 'medium',
-        'temp_min' => 4, 'temp_max' => 7, 'precip_threshold' => 15, 'wind_threshold' => 15, // Adjusted temp slightly
-        'waterproof' => false, 'windproof' => true, // Often wind resistant
-        'sunshielding' => false,
-        'img' => './img/jacket_casual_medium.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+    'jacket-outer-casual-medium' => [
+        'name' => 'Medium Casual Jacket', 'type' => 'jacket', 'layer' => 'outer', 'category' => ['Casual', 'Tourism'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold'], 'water_resistance' => 'light', 'insulation' => 'medium', 'thermal_value' => 2,
+        'wind_resistance' => 'medium', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/jacket_casual_medium.jpg', 'img_fallback' => './img/jacket.jpg'
     ],
-     'coat-casual-heavy' => [ // RENAMED from jacket-casual-heavy (using 'jacket' type still) E.g., Wool coat, Duffel coat
-        'name' => 'Heavy Casual Coat', 'type' => 'jacket', 'category' => ['Casual', 'Tourism'], 'thermal' => 'heavy',
-        'temp_min' => 1, 'temp_max' => 5, // Slightly adjusted range
-        'precip_threshold' => 20, 'wind_threshold' => 20,
-        'waterproof' => false, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/coat_casual_heavy.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+    'coat-outer-casual-heavy' => [
+        'name' => 'Heavy Casual Coat', 'type' => 'coat', 'layer' => 'outer', 'category' => ['Casual', 'Tourism'],
+        'temp_bands' => ['Crisp', 'Cold', 'Frigid'], 'water_resistance' => 'resistant', 'insulation' => 'heavy', 'thermal_value' => 3,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/coat_casual_heavy.jpg', 'img_fallback' => './img/coat.jpg'
     ],
-     'jacket-professional-medium' => [ // E.g., Overcoat/Trench coat
-        'name' => 'Overcoat/ Trenchcoat', 'type' => 'jacket', 'category' => 'Professional', 'thermal' => 'medium',
-        'temp_min' => 3, 'temp_max' => 6, // Adjusted range
-        'precip_threshold' => 20, // More likely worn in potential rain
-        'wind_threshold' => 10,
-        'conditions' => ['rain', 'drizzle', 'showers'], // Relevant for trench
-        'waterproof' => true, 'windproof' => true, 'sunshielding' => false, // Trench coats are usually water/wind resistant
-        'img' => './img/jacket_professional_medium.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+    'coat-outer-professional-light' => [
+        'name' => 'Trench Coat/Light Overcoat', 'type' => 'coat', 'layer' => 'outer', 'category' => 'Professional',
+        'temp_bands' => ['Warm', 'Mild', 'Crisp'], 'water_resistance' => 'resistant', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'medium', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/jacket_professional_light.jpg', 'img_fallback' => './img/coat.jpg'
     ],
-    'parka-casual-heavy' => [ // NEW - Very Warm Coat, using 'coat' type
-        'name' => 'Parka', 'type' => 'coat', 'category' => ['Casual', 'Tourism'], 'thermal' => 'heavy',
-        'temp_min' => 0, 'temp_max' => 3, // For very cold temps (0F-30F)
-        'precip_threshold' => 30, 'wind_threshold' => 15, 'conditions' => ['snow', 'sleet', 'cold', 'blizzard'],
-        'waterproof' => true, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/parka_casual_heavy.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+    'coat-outer-professional-medium' => [
+        'name' => 'Wool Overcoat', 'type' => 'coat', 'layer' => 'outer', 'category' => 'Professional',
+        'temp_bands' => ['Mild', 'Crisp', 'Cold'], 'water_resistance' => 'light', 'insulation' => 'medium', 'thermal_value' => 3,
+        'wind_resistance' => 'medium', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/jacket_professional_medium.jpg', 'img_fallback' => './img/coat.jpg'
     ],
-     'jacket-hiking-light-rain' => [ // Existing, adjusted precip
-        'name' => 'Light Hiking Rain Jacket', 'type' => 'jacket', 'category' => 'Hiking', 'thermal' => 'light',
-        'temp_min' => 5, 'temp_max' => 9,
-        'precip_threshold' => 25, // Lowered threshold
-        'wind_threshold' => 15, 'conditions' => ['rain', 'showers', 'drizzle'],
-        'waterproof' => true, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/jacket_hiking_light_rain.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+    'coat-outer-professional-heavy' => [
+        'name' => 'Heavy Insulated Topcoat', 'type' => 'coat', 'layer' => 'outer', 'category' => 'Professional',
+        'temp_bands' => ['Crisp', 'Cold', 'Frigid'], 'water_resistance' => 'resistant', 'insulation' => 'heavy', 'thermal_value' => 4,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/jacket_professional_heavy.jpg', 'img_fallback' => './img/coat.jpg'
     ],
-     'jacket-hiking-heavy' => [ // Existing, adjusted precip
-        'name' => 'Heavy Hiking Jacket', 'type' => 'jacket', 'category' => 'Hiking', 'thermal' => 'heavy',
-        'temp_min' => 0, 'temp_max' => 4,
-        'precip_threshold' => 40, // Lowered threshold slightly
-        'wind_threshold' => 25, 'conditions' => ['rain', 'showers', 'snow', 'sleet', 'blizzard'],
-        'waterproof' => true, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/jacket_hiking_heavy.jpg', 'img_fallback' => './img/jacket.jpg' // NEEDS IMAGE
+     'coat-outer-parka-heavy' => [
+        'name' => 'Parka', 'type' => 'coat', 'layer' => 'outer', 'category' => ['Casual', 'Tourism', 'Professional'],
+        'temp_bands' => ['Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'proof', 'insulation' => 'heavy', 'thermal_value' => 4,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'sun_protection' => false, 'special_conditions' => ['snow', 'severe'],
+        'img' => './img/parka_casual_heavy.jpg', 'img_fallback' => './img/coat.jpg'
+    ],
+     'jacket-outer-hiking-light-rain' => [
+        'name' => 'Hiking Rain Shell', 'type' => 'jacket', 'layer' => 'outer', 'category' => 'Hiking',
+        'temp_bands' => ['Hot', 'Warm', 'Mild', 'Crisp'], 'water_resistance' => 'proof', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'proof', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => ['rain', 'drizzle'],
+        'img' => './img/jacket_hiking_light_rain.jpg', 'img_fallback' => './img/jacket.jpg'
+    ],
+     'jacket-outer-hiking-heavy' => [
+        'name' => 'Insulated Hiking Jacket', 'type' => 'jacket', 'layer' => 'outer', 'category' => 'Hiking',
+        'temp_bands' => ['Crisp', 'Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'proof', 'insulation' => 'heavy', 'thermal_value' => 4,
+        'wind_resistance' => 'proof', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => ['snow', 'rain', 'severe'],
+        'img' => './img/jacket_hiking_heavy.jpg', 'img_fallback' => './img/jacket.jpg'
     ],
 
-    // --- Accessories ---
+    // === BOTTOMS ===
+    // -- Base Layer Bottoms --
+    'base_pants-thermal' => [
+        'name' => 'Long Johns', 'type' => 'base_pants', 'layer' => 'base', 'category' => ['Casual', 'Tourism', 'Professional', 'Hiking'],
+        'temp_bands' => ['Crisp', 'Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'none', 'insulation' => 'medium', 'thermal_value' => 2,
+        'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/pants_waffled.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+
+    // -- Outer Layer Bottoms --
+    'shorts-outer-casual' => [
+        'name' => 'Shorts', 'type' => 'shorts', 'layer' => 'outer', 'category' => ['Casual', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Dangerous', 'Hot', 'Warm'], 'water_resistance' => 'none', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'none', 'breathability' => 'high', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/shorts_casual.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+    'pants-outer-casual-jeans' => [
+        'name' => 'Jeans', 'type' => 'pants', 'layer' => 'outer', 'category' => ['Casual', 'Tourism'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'light', 'insulation' => 'light', 'thermal_value' => 2,
+        'wind_resistance' => 'medium', 'breathability' => 'low', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/jeans_casual.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+    'pants-outer-casual-chinos' => [
+        'name' => 'Chinos/ Khakis', 'type' => 'pants', 'layer' => 'outer', 'category' => ['Casual', 'Professional', 'Tourism'],
+        'temp_bands' => ['Warm', 'Mild'], 'water_resistance' => 'light', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'light', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/chinos_casual_professional.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+     'pants-outer-casual-heavy-chinos' => [
+        'name' => 'Heavy Chinos', 'type' => 'pants', 'layer' => 'outer', 'category' => ['Casual', 'Professional', 'Tourism'],
+        'temp_bands' => ['Crisp', 'Cold'], 'water_resistance' => 'resistant', 'insulation' => 'medium', 'thermal_value' => 2,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'special_conditions' => [],
+        'img' => './img/chinos_casual_heavy.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+    'pants-outer-professional-slacks-light' => [
+        'name' => 'Dress Slacks', 'type' => 'pants', 'layer' => 'outer', 'category' => 'Professional',
+        'temp_bands' => ['Dangerous', 'Hot','Warm', 'Mild'], 'water_resistance' => 'none', 'insulation' => 'light', 'thermal_value' => 1,
+        'wind_resistance' => 'light', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/slacks_professional_light.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+    'pants-outer-professional-slacks-heavy' => [
+        'name' => 'Heavy Slacks', 'type' => 'pants', 'layer' => 'outer', 'category' => 'Professional',
+        'temp_bands' => ['Crisp', 'Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'light', 'insulation' => 'medium', 'thermal_value' => 3,
+        'wind_resistance' => 'medium', 'breathability' => 'medium', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/slacks_professional_medium.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+     'pants-outer-hiking-light' => [
+        'name' => 'Light Hiking Pants', 'type' => 'pants', 'layer' => 'outer', 'category' => 'Hiking',
+        'temp_bands' => ['Hot', 'Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'light', 'insulation' => 'none', 'thermal_value' => 1,
+        'wind_resistance' => 'medium', 'breathability' => 'high', 'sun_protection' => true,
+        'img' => './img/pants_hiking_light.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+     'pants-outer-hiking-medium' => [
+        'name' => 'Standard Hiking Pants', 'type' => 'pants', 'layer' => 'outer', 'category' => 'Hiking',
+        'temp_bands' => ['Mild', 'Crisp', 'Cold'], 'water_resistance' => 'resistant', 'insulation' => 'light', 'thermal_value' => 2,
+        'wind_resistance' => 'proof', 'breathability' => 'medium', 'sun_protection' => true,
+        'img' => './img/pants_hiking_medium.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+    'pants-outer-hiking-heavy' => [
+        'name' => 'Insulated Hiking Pants', 'type' => 'pants', 'layer' => 'outer', 'category' => 'Hiking',
+        'temp_bands' => ['Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'proof', 'insulation' => 'medium', 'thermal_value' => 4,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'sun_protection' => false, 'special_conditions' => [],
+        'img' => './img/pants_hiking_heavy.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+    'pants-outer-rain' => [
+        'name' => 'Rain Pants', 'type' => 'pants', 'layer' => 'outer', 'category' => ['Hiking', 'Casual', 'Tourism'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp', 'Cold', 'Frigid'], 'water_resistance' => 'resistant', 'insulation' => 'none', 'thermal_value' => 0,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'special_conditions' => [],
+        'img' => './img/pants_rain.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+    'pants--outer-insulated' => [
+        'name' => 'Insulated Pants', 'type' => 'pants', 'layer' => 'outer', 'category' => ['Hiking', 'Casual', 'Tourism'],
+        'temp_bands' => ['Frigid', 'Freezing'], 'water_resistance' => 'proof', 'insulation' => 'heavy', 'thermal_value' => 4,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'special_conditions' => [],
+        'img' => './img/pants_insulated.jpg', 'img_fallback' => './img/pants.jpg'
+    ],
+
+    // === FOOTWEAR ===
+    // -- Socks (Single Layer) --
+    'socks-light' => [
+        'name' => 'Light Socks', 'type' => 'socks', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Hot', 'Warm', 'Mild'], 'insulation' => 'none', 'thermal_value' => 0,
+        'img' => './img/socks_light.jpg', 'img_fallback' => './img/socks.jpg'
+    ],
+    'socks-medium' => [
+        'name' => 'Tube Socks', 'type' => 'socks', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold'], 'insulation' => 'light', 'thermal_value' => 1,
+        'img' => './img/socks_medium.jpg', 'img_fallback' => './img/socks.jpg'
+    ],
+    'socks-heavy-wool' => [
+        'name' => 'Heavy Socks', 'type' => 'socks', 'layer' => 'single', 'category' => ['Casual', 'Tourism', 'Hiking', 'Professional'],
+        'temp_bands' => ['Cold', 'Frigid', 'Freezing'], 'insulation' => 'medium', 'thermal_value' => 2,
+        'img' => './img/socks_heavy.jpg', 'img_fallback' => './img/socks.jpg'
+    ],
+
+    // -- Shoes (Single Layer) --
+    'sandals-casual-light' => [
+        'name' => 'Sandals', 'type' => 'sneakers', 'layer' => 'single', 'category' => ['Casual', 'Tourism'],
+        'temp_bands' => ['Dangerous', 'Hot'], 'water_resistance' => 'none', 'breathability' => 'high', 'thermal_value' => 0,
+        'img' => './img/sandals.jpg', 'img_fallback' => './img/sandals.jpg'
+    ],
+     'sneakers-casual-standard' => [
+        'name' => 'Daily Sneakers', 'type' => 'sneakers', 'layer' => 'single',
+        'category' => ['Casual', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Hot', 'Warm', 'Mild', 'Crisp'], 'water_resistance' => 'none', 'breathability' => 'medium', 'thermal_value' => 1,
+        'img' => './img/shoes_casual.jpg', 'img_fallback' => './img/sneakers.jpg'
+    ],
+     'sneakers-casual-resistant' => [
+        'name' => 'Weatherproof Sneakers', 'type' => 'sneakers', 'layer' => 'single',
+        'category' => ['Casual', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'light', 'breathability' => 'low', 'wind_resistance' => 'medium', 'thermal_value' => 2,
+        'img' => './img/shoes_casual_medium.jpg', 'img_fallback' => './img/sneakers.jpg'
+    ],
+    'shoes-professional-dress' => [
+        'name' => 'Dress Shoes', 'type' => 'shoes', 'layer' => 'single', 'category' => ['Professional', 'Tourism'],
+        'temp_bands' => ['Dangerous', 'Hot', 'Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'light', 'breathability' => 'low', 'thermal_value' => 1,
+        'img' => './img/shoes_professional_light.jpg', 'img_fallback' => './img/shoes.jpg'
+    ],
+    'shoes-professional-leather' => [
+        'name' => 'Leather Boots', 'type' => 'shoes', 'layer' => 'single', 'category' => ['Professional', 'Tourism'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp', 'Cold', 'Frigid'], 'water_resistance' => 'resistant', 'breathability' => 'low', 'wind_resistance' => 'medium', 'insulation' => 'light', 'thermal_value' => 2,
+        'img' => './img/shoes_professional_medium.jpg', 'img_fallback' => './img/shoes.jpg'
+    ],
+     'boots-hiking' => [
+        'name' => 'Hiking Boots', 'type' => 'boots', 'layer' => 'single', 'category' => ['Hiking', 'Casual'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp', 'Cold', 'Frigid'], 'water_resistance' => 'resistant', 'breathability' => 'medium', 'insulation' => 'light', 'wind_resistance' => 'medium', 'thermal_value' => 3,
+        'special_conditions' => ['rain', 'snow'],
+        'img' => './img/shoes_boots_hiking.jpg', 'img_fallback' => './img/boots.jpg'
+    ],
+     'boots-insulated' => [
+        'name' => 'Winter Boots', 'type' => 'boots', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Hiking', 'Tourism'],
+        'temp_bands' => ['Crisp', 'Cold', 'Frigid', 'Freezing'], 'water_resistance' => 'proof', 'insulation' => 'heavy', 'thermal_value' => 4,
+        'wind_resistance' => 'proof', 'breathability' => 'low', 'special_conditions' => ['snow', 'ice', 'severe'],
+        'img' => './img/shoes_boots_insulated.jpg', 'img_fallback' => './img/boots.jpg'
+    ],
+     'boots-rain' => [
+        'name' => 'Rain Boots', 'type' => 'boots', 'layer' => 'single', 'category' => ['Casual', 'Tourism', 'Professional'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'proof', 'insulation' => 'none', 'thermal_value' => 1,
+        'wind_resistance' => 'medium', 'breathability' => 'low', 'special_conditions' => ['rain', 'drizzle'],
+        'img' => './img/shoes_boots_rain.jpg', 'img_fallback' => './img/boots.jpg'
+    ],
+
+    // --- Accessories (Single Layer) ---
     'hat-sun' => [
-        'name' => 'Sun Hat', 'type' => 'hat', 'category' => ['Casual', 'Hiking', 'Tourism'], 'thermal' => 'light',
-        'temp_min' => 7, 'temp_max' => 10, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => ['sunny', 'clear', 'mostly sunny'],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => true,
-        'img' => './img/hat_sun.jpg', 'img_fallback' => './img/hat.jpg' // NEEDS IMAGE and fallback
+        'name' => 'Cap', 'type' => 'hat', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Hiking', 'Tourism'],
+        'temp_bands' => ['Dangerous', 'Hot', 'Warm', 'Mild', 'Crisp'], 'sun_protection' => true, 'water_resistance' => 'none', 'thermal_value' => 0,
+        'img' => './img/hat_sun.jpg', 'img_fallback' => './img/hat.jpg'
     ],
-    'hat-warm' => [ // E.g., Beanie
-        'name' => 'Warm Hat/ Beanie', 'type' => 'hat', 'category' => ['Casual', 'Hiking', 'Tourism'], 'thermal' => 'medium',
-        'temp_min' => 0, 'temp_max' => 5, // Adjusted max temp slightly higher
-        'precip_threshold' => 0, 'wind_threshold' => 10, 'conditions' => ['cold'],
-        'waterproof' => false, 'windproof' => false, // Wool/fleece can be wind resistant
-        'sunshielding' => false,
-        'img' => './img/hat_warm.jpg', 'img_fallback' => './img/hat.jpg' // NEEDS IMAGE
+    'hat-casual' => [
+        'name' => 'Beanie', 'type' => 'hat', 'layer' => 'single', 'category' => ['Casual', 'Hiking', 'Tourism'],
+        'temp_bands' => ['Hot', 'Warm', 'Mild', 'Crisp'], 'sun_protection' => true, 'water_resistance' => 'none', 'insulation' => 'none', 'thermal_value' => 0,
+        'img' => './img/hat_light.jpg', 'img_fallback' => './img/hat.jpg'
     ],
-     'scarf-warm' => [ // NEW
-        'name' => 'Scarf', 'type' => 'scarf', 'category' => ['Casual', 'Professional', 'Tourism', 'Hiking'], 'thermal' => 'medium',
-        'temp_min' => 0, 'temp_max' => 5, // Similar range to warm hat/light gloves
-        'precip_threshold' => 0, 'wind_threshold' => 10, 'conditions' => ['cold', 'windy'], // Good for wind chill
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/scarf_warm.jpg', 'img_fallback' => './img/accessory.jpg' // NEEDS IMAGE and fallback
+    'hat-warm' => [
+        'name' => 'Warm Hat', 'type' => 'hat', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Hiking', 'Tourism'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold', 'Frigid', 'Freezing'], 'sun_protection' => false, 'water_resistance' => 'light', 'insulation' => 'medium', 'wind_resistance' => 'medium', 'thermal_value' => 2,
+        'img' => './img/hat_warm.jpg', 'img_fallback' => './img/hat.jpg'
+    ],
+    'scarf-light' => [
+        'name' => 'Light Scarf', 'type' => 'scarf', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Hiking', 'Tourism'],
+        'temp_bands' => ['Warm', 'Mild', 'Crisp'], 'insulation' => 'light', 'wind_resistance' => 'light', 'thermal_value' => 1,
+        'img' => './img/scarf_light.jpg', 'img_fallback' => './img/accessory.jpg'
+    ],
+    'scarf-warm' => [
+        'name' => 'Warm Scarf', 'type' => 'scarf', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Tourism', 'Hiking'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold', 'Frigid', 'Freezing'], 'insulation' => 'medium', 'wind_resistance' => 'medium', 'thermal_value' => 2,
+        'img' => './img/scarf_warm.jpg', 'img_fallback' => './img/accessory.jpg'
     ],
     'gloves-light' => [
-        'name' => 'Light Gloves', 'type' => 'gloves', 'category' => ['Casual', 'Hiking', 'Tourism', 'Professional'], 'thermal' => 'light',
-        'temp_min' => 3, 'temp_max' => 5, 'precip_threshold' => 0, 'wind_threshold' => 10, 'conditions' => ['cold'],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/gloves_light.jpg', 'img_fallback' => './img/gloves.jpg' // NEEDS IMAGE and fallback
+        'name' => 'Light Gloves', 'type' => 'gloves', 'layer' => 'single', 'category' => ['Casual', 'Hiking', 'Tourism', 'Professional'],
+        'temp_bands' => ['Mild', 'Crisp', 'Cold'], 'insulation' => 'light', 'wind_resistance' => 'light', 'thermal_value' => 1,
+        'img' => './img/gloves_light.jpg', 'img_fallback' => './img/gloves.jpg'
     ],
     'gloves-heavy' => [
-        'name' => 'Heavy Gloves/ Mittens', 'type' => 'gloves', 'category' => ['Casual', 'Hiking', 'Tourism'], 'thermal' => 'heavy',
-        'temp_min' => 0, 'temp_max' => 3, 'precip_threshold' => 20, 'wind_threshold' => 15, 'conditions' => ['snow', 'sleet', 'cold', 'blizzard'],
-        'waterproof' => false, 'windproof' => true, // Often are wind/water resistant
-        'sunshielding' => false,
-        'img' => './img/gloves_heavy.jpg', 'img_fallback' => './img/gloves.jpg' // NEEDS IMAGE
+        'name' => 'Insulated Gloves/Mittens', 'type' => 'gloves', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Hiking', 'Tourism'],
+        'temp_bands' => ['Cold', 'Frigid', 'Freezing'], 'insulation' => 'heavy', 'wind_resistance' => 'proof', 'water_resistance' => 'resistant', 'special_conditions' => ['snow'], 'thermal_value' => 3,
+        'img' => './img/gloves_heavy.jpg', 'img_fallback' => './img/gloves.jpg'
     ],
      'umbrella' => [
-        'name' => 'Umbrella', 'type' => 'accessory', 'category' => ['Casual', 'Professional', 'Tourism'], 'thermal' => 'all',
-        'temp_min' => 0, 'temp_max' => 10,
-        'precip_threshold' => 30, // Slightly higher threshold than raincoats now
-        'wind_threshold' => 0, // Wind check done separately in suggest_clothing (using UMBRELLA_MAX_WIND_MPH)
-        'conditions' => ['rain', 'showers', 'drizzle'],
-        'waterproof' => true, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/umbrella.jpg', 'img_fallback' => './img/accessory.jpg' // NEEDS IMAGE
+        'name' => 'Umbrella', 'type' => 'umbrella', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Tourism'],
+        'temp_bands' => ['Dangerous', 'Hot', 'Warm', 'Mild', 'Crisp', 'Cold'], 'water_resistance' => 'proof', 'wind_resistance' => 'none', 'thermal_value' => 0,
+        'special_conditions' => ['rain', 'drizzle'],
+        'img' => './img/umbrella.jpg', 'img_fallback' => './img/accessory.jpg'
     ],
-     'sunglasses' => [ 
-        'name' => 'Sunglasses', 'type' => 'sunglasses', 'category' => ['Casual', 'Professional', 'Hiking', 'Tourism'], 'thermal' => 'all',
-        'temp_min' => 0, 'temp_max' => 10, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => ['sunny', 'clear', 'mostly sunny'],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => true,
-        'img' => './img/sunglasses.jpg', 'img_fallback' => './img/accessory.jpg' // NEEDS IMAGE and fallback
+     'sunglasses' => [
+        'name' => 'Sunglasses', 'type' => 'sunglasses', 'layer' => 'single', 'category' => ['Casual', 'Professional', 'Hiking', 'Tourism'],
+        'temp_bands' => ['Dangerous', 'Hot', 'Warm', 'Mild', 'Crisp', 'Cold', 'Frigid', 'Freezing'],
+        'sun_protection' => true, 'special_conditions' => ['sunny'], 'thermal_value' => 0,
+        'img' => './img/sunglasses.jpg', 'img_fallback' => './img/accessory.jpg'
     ],
 
-    // --- Socks & Shoes ---
-    'socks-medium' => [
-        'name' => 'Standard Socks', 'type' => 'socks', 'category' => ['Casual', 'Professional', 'Tourism', 'Hiking'], 'thermal' => 'medium',
-        'temp_min' => 0, 'temp_max' => 10, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [], // Always needed except maybe with sandals? (No sandals defined yet)
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/socks_medium.jpg', 'img_fallback' => './img/socks.jpg' // NEEDS IMAGE and fallback
-    ],
-     'socks-hiking-heavy' => [
-        'name' => 'Hiking/ Wool Socks', 'type' => 'socks', 'category' => 'Hiking', 'thermal' => 'heavy',
-        'temp_min' => 0, 'temp_max' => 6, // Good for cooler temps or long hikes
-        'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => ['cold'],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/socks_hiking_heavy.jpg', 'img_fallback' => './img/socks.jpg' // NEEDS IMAGE
-    ],
-     'shoes-casual' => [
-        'name' => 'Casual Shoes/Sneakers', 'type' => 'shoes', 'category' => ['Casual', 'Tourism'], 'thermal' => 'medium',
-        'temp_min' => 3, 'temp_max' => 10, 'precip_threshold' => 20, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shoes_casual.jpg', 'img_fallback' => './img/shoes.jpg' // NEEDS IMAGE and fallback
-    ],
-    'shoes-professional' => [
-        'name' => 'Leather/ Dress Shoes', 'type' => 'shoes', 'category' => 'Professional', 'thermal' => 'medium',
-        'temp_min' => 3, 'temp_max' => 9, 'precip_threshold' => 30, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, // Maybe slightly water resistant if treated
-        'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shoes_professional.jpg', 'img_fallback' => './img/shoes.jpg' // NEEDS IMAGE
-    ],
-     'shoes-hiking' => [
-        'name' => 'Hiking Boots/ Shoes', 'type' => 'shoes', 'category' => 'Hiking', 'thermal' => 'medium', // Can be heavy too
-        'temp_min' => 1, 'temp_max' => 8, // Wider range, includes colder temps
-        'precip_threshold' => 30, // Often waterproof/resistant
-        'wind_threshold' => 10, 'conditions' => ['rain', 'snow', 'sleet'],
-        'waterproof' => false, // Varies, many are WP
-        'windproof' => false, 'sunshielding' => false,
-        'img' => './img/shoes_hiking.jpg', 'img_fallback' => './img/shoes.jpg' // NEEDS IMAGE
-    ],
-     'shoes-boots-insulated' => [
-        'name' => 'Insulated Boots', 'type' => 'shoes', 'category' => ['Casual', 'Hiking', 'Tourism'], 'thermal' => 'heavy',
-        'temp_min' => 0, 'temp_max' => 4, // Cold weather
-        'precip_threshold' => 40, 'wind_threshold' => 0, 'conditions' => ['snow', 'sleet', 'ice', 'cold', 'blizzard'],
-        'waterproof' => true, 'windproof' => true, 'sunshielding' => false,
-        'img' => './img/shoes_boots_insulated.jpg', 'img_fallback' => './img/shoes.jpg' // NEEDS IMAGE
-    ],
-
-    // Placeholder item definition - useful for get_image_path fallback logic
+    // Placeholder item definition
     'placeholder' => [
-        'name' => 'Placeholder', 'type' => 'accessory', 'category' => [], 'thermal' => 'all',
-        'temp_min' => 0, 'temp_max' => 10, 'precip_threshold' => 0, 'wind_threshold' => 0, 'conditions' => [],
-        'waterproof' => false, 'windproof' => false, 'sunshielding' => false,
-        'img' => './img/placeholder.png', 'img_fallback' => './img/placeholder.png' // NEEDS IMAGE
+        'name' => 'Placeholder', 'type' => 'accessory', 'layer' => 'single', 'category' => [], 'temp_bands' => [],
+        'water_resistance' => 'none', 'insulation' => 'none', 'wind_resistance' => 'none', 'breathability' => 'medium', 'sun_protection' => false, 'thermal_value' => 0,
+        'img' => './img/placeholder.png', 'img_fallback' => './img/placeholder.png'
     ],
 ]);
 

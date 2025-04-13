@@ -1,528 +1,698 @@
-/* CSS - Added margin-bottom to attribution */
+/* FILE: style.css */
+/* Combined and updated styles for whatJacket App v0.8.2 */
 
 /* --- Global Styles & Theme --- */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* Common system font stack */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     line-height: 1.6;
     margin: 0;
-    padding: 0;
-    background-color: #f8f9fa; /* Very light grey/blue */
-    color: #343a40; /* Dark grey/blue */
-    padding-bottom: 100px; /* Space for footer */
+    padding: 0; /* REMOVED fixed padding-top */
+    background-color: #f8f9fa;
+    color: #343a40;
+    padding-bottom: 120px; /* Increased space for footer */
 }
 
 .container {
     max-width: 960px;
     margin: 20px auto;
     padding: 25px;
-    background: #ffffff; /* White */
+    background: #ffffff;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
 }
 
 hr {
     border: none;
-    border-top: 1px solid #dee2e6; /* Lighter border */
+    border-top: 1px solid #dee2e6;
     margin: 25px 0;
 }
 
 a {
-    color: #007bff; /* Primary Blue */
+    color: #007bff;
     text-decoration: none;
 }
 a:hover {
-    color: #0056b3; /* Darker Blue */
+    color: #0056b3;
     text-decoration: underline;
 }
 
-/* --- Header Logo --- */
+
+/* --- Header (Now with Logo and Home Button) --- */
 .header {
-    text-align: center;
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
 }
-.header img {
-    max-width: 70%;
-    max-height: 100px;
+.header .logo-link img {
+    max-width: 160px;
+    max-height: 70px;
     height: auto;
+    display: block;
 }
-.header a { /* Ensure logo link has no underline */
-    text-decoration: none;
+.header a { text-decoration: none; }
+
+/* --- Intro Text --- */
+.intro-text {
+    text-align: center;
+    color: #6c757d;
+    margin: 0 auto 25px auto; /* Adjusted margin */
+    max-width: 700px;
 }
 
-/* --- Form Styling --- */
+
+/* --- Form Styling (Revised for Vertical Stack) --- */
 .location-form {
      margin-bottom: 30px;
 }
-
-.location-form label {
+.form-section {
+     margin-bottom: 25px;
+     /* Center content within sections if desired */
+     /* text-align: center; */
+}
+.form-label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 600; /* Slightly bolder */
+    margin-bottom: 10px;
+    font-weight: 600;
     color: #495057;
+    font-size: 1.1em;
+    text-align: center; /* Center labels */
 }
 
-.location-form select,
-.location-form input[type="text"] {
-    width: 100%;
+/* Styles for individual form parts (now stacked) */
+.temp-toggle-part { 
+    text-align: center;
+    margin-bottom: 30px; /* Space below toggle */
+}
+.temp-toggle-part .form-label {
+    margin-bottom: 15px;
+}
+.temp-toggle-container { /* Centered toggle elements */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+/* Temperature Unit Toggle Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  flex-shrink: 0; /* Prevent shrinking in flex */
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: #007bff; /* Blue when checked (Celsius) */
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px #007bff;
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+.slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
+
+.toggle-label {
+    font-weight: 500;
+    color: #6c757d;
+    transition: color 0.3s ease;
+    cursor: default; /* Indicate it's not clickable */
+}
+.toggle-label.active {
+    color: #007bff; /* Highlight active unit */
+}
+
+.activity-part { /* Container for activity selection */
+    margin-bottom: 30px; /* Space below activity */
+}
+
+/* Activity Radio Buttons with Images */
+.activity-selector { /* Center the radio options */
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 4px;
+    column-gap: 4px;
+    justify-content: center; /* Center the items */
+}
+.activity-option input[type="radio"] {
+    opacity: 0;
+    position: fixed;
+    width: 0;
+}
+.activity-option label {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Align content start */
+    padding: 10px; /* Adjust padding */
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff;
+    width: 75px; /* Fixed width */
+    height: 75px; /* Fixed height */
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-sizing: border-box;
+}
+.activity-option label:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+}
+.activity-option input[type="radio"]:checked + label {
+    border-color: #007bff;
+    background-color: #e7f5ff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    color: #0056b3;
+    font-weight: 500;
+}
+.activity-option img.activity-icon { /* Style the image */
+    width: 40px;  /* Adjust size */
+    height: 40px; /* Adjust size */
+    object-fit: contain; /* Or 'cover' */
+    margin-bottom: 8px; /* Space below icon */
+}
+.activity-option span.activity-icon-placeholder { /* Style for fallback */
+    font-size: 1.8em;
+    margin-bottom: 8px;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 5px; /* Match image style */
+    background-color: #e9ecef;
+    color: #6c757d;
+    display: inline-block;
+    font-weight: bold;
+}
+.activity-option input[type="radio"]:checked + label .activity-icon-placeholder {
+     background-color: #007bff;
+     color: #fff;
+}
+.activity-option .activity-label {
+    font-size: 0.85em; /* Adjust size */
+    line-height: 1.2;
+    margin-top: auto; /* Push label to bottom */
+}
+
+
+/* ZIP Code and Button Section (already centered) */
+.form-section-zip {
+    text-align: center;
+    margin-top: 25px; /* Keep margin */
+}
+.form-section-zip label.form-label {
+     margin-bottom: 15px;
+     display: block;
+}
+.zip-button-wrapper { /* Stays centered */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.form-section-zip input[type="text"] {
+    flex-grow: 0; /* Don't grow */
+    flex-shrink: 0; /* Don't shrink */
+    flex-basis: 180px; /* Base width for ZIP */
+    max-width: 180px; /* Explicit max width */
     padding: 12px 15px;
-    margin-bottom: 20px;
-    border: 1px solid #ced4da; /* Standard border */
+    margin-bottom: 0;
+    border: 1px solid #ced4da;
     border-radius: 5px;
     box-sizing: border-box;
     font-size: 1rem;
     background-color: #fff;
+    text-align: center;
 }
-.location-form select:focus,
-.location-form input[type="text"]:focus {
-    border-color: #80bdff; /* Blue focus */
+.form-section-zip input[type="text"]:focus { /* Keep focus styles */
+    border-color: #80bdff;
     outline: 0;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
-
-/* Button section */
-.form-section-zip {
-    text-align: center;
-    margin-top: 10px; /* Space above button */
-}
-.form-section-zip label { /* Align ZIP label better */
-     margin-bottom: 10px;
-}
-
 .form-section-zip button {
-    display: inline-flex; /* Align icon and text */
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: auto;
-    min-width: 220px;
-    padding: 12px 25px;
+    width: auto; /* Auto width */
+    min-width: auto; /* Remove min-width if not needed */
+    padding: 12px 20px; /* Adjust padding */
     border-radius: 5px;
     border: none;
     cursor: pointer;
-    font-size: 1.1em;
+    font-size: 1.05em;
     font-weight: 500;
     color: white;
-    background-color: #007bff; /* Primary Blue */
+    background-color: #007bff;
     transition: background-color 0.2s ease;
-    vertical-align: middle;
+    flex-shrink: 0; /* Prevent button from shrinking */
+    margin-bottom: 0; /* Remove bottom margin */
+    max-width: 250px; /* Optional max width */
 }
 .form-section-zip button:hover {
-    background-color: #0056b3; /* Darker Blue */
+    background-color: #0056b3;
 }
 .form-section-zip button .icon {
-    margin-right: 10px;
-    font-size: 1.2em; /* Adjust icon size if needed */
-    line-height: 1; /* Ensure vertical alignment */
-}
-
-/* --- Messages --- */
-.message {
-    padding: 15px;
-    margin: 20px 0;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: 500;
-}
-.message.error {
-    background-color: #f8d7da; /* Light Red */
-    color: #721c24; /* Dark Red */
-    border: 1px solid #f5c6cb;
-}
-/* Info message style is kept for potential future use, but not for attribution now */
-.message.info {
-    background-color: #d1ecf1; /* Light Cyan */
-    color: #0c5460; /* Dark Cyan */
-    border: 1px solid #bee5eb;
-    font-size: 0.9em;
-}
-.message.warning { /* Used for 'no suggestions' etc */
-    background-color: #fff3cd; /* Light Yellow/Gold */
-    color: #856404; /* Dark Yellow/Gold */
-    border: 1px solid #ffeeba;
-}
-
-/* --- Results Styling --- */
-.results h2 {
-     text-align: center;
-     margin-bottom: 15px;
-     color: #0056b3; /* Darker Blue Title */
-}
-
-/* Current Info Bar */
-.current-info {
-    background-color: #e7f5ff; /* Light Blue Background */
-    border: 1px solid #b3d7ff; /* Lighter Blue Border */
-    padding: 12px 15px;
-    margin-bottom: 25px;
-    border-radius: 5px;
-    text-align: center;
-    font-size: 0.95em;
-    display: flex;
-    flex-wrap: wrap; /* Allow wrapping */
-    justify-content: center; /* Center items horizontally */
-    align-items: center; /* Center items vertically */
-    gap: 5px 15px; /* Row gap, Column gap */
-}
-.current-info .info-item {
-    white-space: nowrap; /* Prevent individual items wrapping */
-    flex-shrink: 0; /* Prevent items from shrinking too much */
-}
-.current-info strong {
-    color: #004085; /* Darker Blue for labels */
-}
-.current-info .details { /* Smaller text for details in brackets */
-    font-size: 0.9em;
-    color: #495057;
-    margin-left: 3px;
-}
-.current-info .weather-icon-small {
-    vertical-align: middle;
-    height: 1.6em; /* Adjust size as needed */
-    width: auto;
-    margin-left: 8px;
-}
-
-
-/* Clothing Suggestions Layout */
-.clothing-suggestions {
-    margin-bottom: 30px;
-}
-.clothing-suggestions h3 {
-    border-bottom: 2px solid #e9ecef; /* Light grey border */
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    text-align: center;
-    color: #495057; /* Medium Grey */
-    font-weight: 600;
-}
-
-/* Prominent Item */
-.prominent-item {
-    text-align: center;
-    margin-bottom: 30px;
-}
-.prominent-item .clothing-item {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 220px;
-    padding: 20px;
-    background-color: #fff;
-    border: 2px solid #ffc107; /* Gold Accent Border */
-    border-radius: 6px;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.08);
-}
-.prominent-item .clothing-item img {
-    width: 130px;
-    height: 130px;
-    object-fit: cover;
-    margin-bottom: 15px; /* Space between image and text */
-    border-radius: 4px;
-    background-color: #f8f9fa; /* Light bg for image area */
-    border: none; /* Ensure no default border */
-    outline: none; /* Ensure no default outline */
-}
-.prominent-item .clothing-item span {
-    font-weight: 600;
-    font-size: 1.1em;
-    color: #343a40;
-}
-
-/* Other Items */
-/* The main container for all grouped items */
-.other-items {
-    /* No specific layout needed here, structure comes from inner elements */
-}
-
-/* Styling for the group headings (Tops, Bottoms, Accessories) */
-.other-items h4 {
-    margin-top: 25px;
-    margin-bottom: 15px;
-    color: #6c757d; /* Muted Grey */
-    text-transform: capitalize; /* Keep capitalize if desired */
-    text-align: center;
-    font-size: 1.2em; /* Make group headings slightly larger */
-    font-weight: 500;
-}
-
-/* Flex container for items WITHIN a specific group (Tops, Bottoms, or Acc.) */
-.clothing-type-group {
-     display: flex;
-     flex-wrap: wrap; /* THIS makes items wrap into rows */
-     justify-content: center; /* Center items horizontally */
-     gap: 15px; /* Space between items */
-     margin-bottom: 30px; /* Space below each group */
-     padding: 0 10px; /* Add slight horizontal padding if needed */
-}
-
-/* Individual clothing item card within the groups */
-.other-items .clothing-item {
-    display: flex;
-    flex-direction: column; /* Stack image and text vertically */
-    align-items: center; /* Center content horizontally */
-    text-align: center;
-    background-color: #ffffff;
-    border: 1px solid #dee2e6; /* Light border on the container */
-    padding: 12px;
-    border-radius: 5px;
-    width: 110px; /* Base width - THIS controls how many fit per row */
-    box-sizing: border-box;
-    transition: box-shadow 0.2s ease;
-    vertical-align: top; /* Align items to the top if rows wrap unevenly */
-}
-.other-items .clothing-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Subtle hover effect */
-}
-
-.other-items .clothing-item img {
-    width: 65px;
-    height: 65px;
-    object-fit: cover;
-    margin-bottom: 10px; /* Space between image and text below */
-    border-radius: 4px;
-    background-color: #f8f9fa;
-    border: none; /* Explicitly remove border from image */
-    outline: none; /* Explicitly remove outline from image */
-}
-.other-items .clothing-item span {
-    /* Name text */
-    flex-grow: 1; /* Allow text to take space if needed */
-    font-size: 0.9em;
-    line-height: 1.3;
-    color: #495057;
-    width: 100%; /* Ensure span takes full width for centering */
-}
-
-
-/* Forecast Summary (Detailed View with Background) */
-.forecast-summary {
-    border: 1px solid #dee2e6; /* Lighter border */
-    padding: 0; /* Remove padding from outer container */
-    margin-top: 30px; /* Space above forecast details */
-    border-radius: 5px;
-    position: relative; /* Needed for overlay positioning */
-    overflow: hidden; /* Keep overlay contained */
-    background-size: cover; /* Cover the div */
-    background-position: center; /* Center the background */
-    background-repeat: no-repeat;
-    color: #ffffff; /* Default text color for contrast */
-}
-/* Overlay for readability */
-.forecast-summary.has-background::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5); /* Dark overlay, adjust opacity */
-    z-index: 1; /* Below content */
-    border-radius: inherit; /* Match parent rounding */
-}
-/* Content wrapper to sit above overlay */
-.forecast-summary .forecast-content {
-    position: relative; /* Sit above overlay */
-    z-index: 2;
-    padding: 25px; /* Add padding here */
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Add shadow for better readability */
-}
-
-.forecast-summary h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #ffffff; /* White title */
-    text-align: center;
-    font-weight: 600;
-}
-.forecast-summary p {
-    margin-bottom: 8px;
-    font-size: 0.95em;
-}
-.forecast-summary strong {
-    color: #f0f0f0; /* Slightly off-white for labels */
-}
-.forecast-summary i {
-    color: #e0e0e0; /* Lighter italic text */
-    display: block;
-    margin-top: 10px;
-    font-size: 0.9em;
-}
-
-
-/* --- Footer Styling --- */
-footer {
-    background-color: #e9ecef; /* Light Grey/Blue */
-    padding: 15px 0 10px 0;
-    border-top: 1px solid #dee2e6;
-    margin-top: 40px;
-    position: relative;
-}
-
-/* Container for interactive elements */
-.footer-content {
-    max-width: 960px; /* Match container width */
-    margin: 0 auto 15px auto;
-    padding: 0 25px; /* Match container padding */
-    display: flex;
-    justify-content: flex-end; /* Push home button to the right */
-    align-items: center;
-}
-
-/* Style the footer home button */
-.footer-home-button {
-    display: inline-flex; /* Align icon and text nicely */
-    align-items: center;
-    padding: 10px 20px;
-    background-color: #6c757d; /* Secondary Grey */
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 1em;
-    font-weight: 500;
-    white-space: nowrap;
-    transition: background-color 0.2s ease;
-}
-.footer-home-button:hover {
-    background-color: #5a6268; /* Darker Grey */
-    color: white;
-    text-decoration: none;
-}
-.footer-home-button .icon {
     margin-right: 8px;
-    font-size: 1.3em;
+    font-size: 1.1em;
     line-height: 1;
 }
 
-/* Container for the links/copyright below */
-.footer-links {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 25px;
+
+/* --- Messages --- */
+.message { padding: 15px; margin: 20px 0; border-radius: 5px; text-align: center; font-weight: 500; }
+.message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.message.info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; font-size: 0.9em; }
+.message.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+/* --- Attribution Link Styling (Form & Footer) --- */
+.attribution { font-size: 0.85em; color: #6c757d; margin-top: 15px; text-align: center; }
+.attribution.form-attribution { margin-bottom: 20px; } /* Space below attribution if form shown */
+.attribution a { color: #0056b3; }
+
+
+/* --- Results Styling --- */
+.results h2 { text-align: center; margin-bottom: 15px; color: #0056b3; }
+.current-info { background-color: #e7f5ff; border: 1px solid #b3d7ff; padding: 12px 15px; margin-bottom: 25px; border-radius: 5px; text-align: center; font-size: 0.95em; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 5px 15px; }
+.current-info .info-item { white-space: nowrap; flex-shrink: 0; }
+.current-info strong { color: #004085; }
+.current-info .details { font-size: 0.9em; color: #495057; margin-left: 3px; }
+.current-info .weather-icon-small { vertical-align: middle; height: 1.6em; width: auto; margin-left: 8px; }
+/* Add condition-specific styles */
+.current-info .condition-sunny { color: #b8860b; font-weight: bold; } /* DarkGoldenRod */
+.current-info .condition-rainy,
+.current-info .condition-drizzling { color: #17a2b8; font-weight: bold; } /* Info blue */
+.current-info .condition-snowy { color: #007bff; font-weight: bold; }
+.current-info .condition-windy { color: #6c757d; font-weight: bold; }
+.current-info .condition-severe,
+.current-info .condition-thunderstorm { color: #dc3545; font-weight: bold; } /* Danger red */
+.current-info .condition-scorching { color: #ff4500; font-weight: bold; } /* OrangeRed */
+.current-info .condition-cloudy,
+.current-info .condition-foggy { color: #6c757d; font-style: italic; }
+
+/* Clothing Suggestions Layout */
+.clothing-suggestions { margin-bottom: 30px; }
+.clothing-suggestions h2 { margin-bottom: 20px; } /* Space below main heading */
+
+/* Prominent Item */
+.prominent-item { text-align: center; margin-bottom: 20px; }
+.prominent-item .clothing-item { display: inline-flex; flex-direction: column; align-items: center; max-width: 180px; padding: 15px; background-color: #fff; border: 2px solid #ffc107; border-radius: 6px; box-shadow: 0 1px 5px rgba(0,0,0,0.08); }
+.prominent-item .clothing-item img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; background-color: #f8f9fa; }
+.prominent-item .clothing-item span { font-weight: 600; font-size: 1em; color: #343a40; }
+.no-prominent { font-style: italic; color: #6c757d; font-size: 0.95em; margin-top: 10px;}
+
+/* Other Items */
+.other-items-heading {
+    border-bottom: 2px solid #e9ecef; padding-bottom: 10px; margin-bottom: 20px;
+    text-align: center; color: #495057; font-weight: 600; font-size: 1.2em;
+}
+.other-items h4 { /* Group Titles: Tops, Bottoms etc */
+    margin-top: 20px; margin-bottom: 12px; color: #6c757d;
+    text-transform: capitalize; text-align: center; font-size: 1.1em; font-weight: 500;
+}
+.clothing-type-group { /* Flex container for items WITHIN a group */
+     display: flex; flex-wrap: wrap; justify-content: center;
+     gap: 12px; /* Space between items */ margin-bottom: 25px; padding: 0 5px;
+}
+.other-items .clothing-item { /* Individual item card */
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    background-color: #ffffff; border: 1px solid #dee2e6; padding: 10px; border-radius: 5px;
+    width: 100px; box-sizing: border-box; transition: box-shadow 0.2s ease;
+    vertical-align: top;
+}
+.other-items .clothing-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.other-items .clothing-item img { width: 55px; height: 55px; object-fit: contain; margin-bottom: 8px; border-radius: 4px; background-color: #f8f9fa; }
+.other-items .clothing-item span { /* Name text */
+    font-size: 0.85em; line-height: 1.3; color: #495057; width: 100%; word-wrap: break-word;
+}
+.no-other-items { text-align: center; font-style: italic; color: #6c757d; margin-top: 15px; font-size: 0.95em; }
+
+
+/* Forecast Summary */
+.forecast-summary { border: 1px solid #dee2e6; padding: 0; margin-top: 30px; border-radius: 5px; position: relative; overflow: hidden; background-size: cover; background-position: center; background-repeat: no-repeat; color: #ffffff; }
+.forecast-summary.has-background::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.55); z-index: 1; border-radius: inherit; }
+.forecast-summary .forecast-content { position: relative; z-index: 2; padding: 25px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); }
+.forecast-summary h3 { margin-top: 0; margin-bottom: 15px; color: #ffffff; text-align: center; font-weight: 600; }
+.forecast-summary p { margin-bottom: 8px; font-size: 0.95em; }
+.forecast-summary strong { color: #f0f0f0; }
+.forecast-summary i { color: #e0e0e0; display: block; margin-top: 10px; font-size: 0.9em; }
+
+/* --- Abridged Activity Form in Results (Padding Adjusted) --- */
+#results-activity-form {
+    background-color: #f8f9fa; /* Light background */
+    padding: 15px; /* REDUCED padding */
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
     text-align: center;
-    font-size: 0.85em;
-    color: #6c757d; /* Muted text color */
 }
-.footer-links p {
-    margin: 5px 0;
+#results-activity-form h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    color: #495057;
+    font-weight: 600;
 }
-.footer-links a {
-    color: #0056b3; /* Darker Blue for links */
-    text-decoration: none;
-    margin: 0 8px;
+#results-activity-form .activity-selector {
+    justify-content: center; /* Ensure centering */
+    margin-bottom: 15px; /* Reduced margin */
+    gap: 10px; /* Slightly reduced gap */
 }
-.footer-links a:hover {
-    text-decoration: underline;
+/* Adjust sizes slightly more if needed */
+#results-activity-form .activity-option label {
+    width: 80px;  /* Slightly smaller */
+    height: 80px; /* Slightly smaller */
+    padding: 8px;
 }
-/* Attribution specific styling */
-.footer-links .attribution {
-    margin-top: 10px; /* Space above */
-    margin-bottom: 10px; /* Space below */
-    font-size: 0.95em; /* Slightly larger attribution */
-    color: #6c757d; /* Match surrounding text */
+#results-activity-form .activity-option img.activity-icon {
+    width: 32px; /* Slightly smaller */
+    height: 32px; /* Slightly smaller */
+    margin-bottom: 5px;
 }
-.footer-links .attribution a { /* Style links within attribution */
-     color: #0056b3;
+#results-activity-form .activity-option span.activity-icon-placeholder {
+     font-size: 1.5em; width: 32px; height: 32px; line-height: 32px; margin-bottom: 5px;
+}
+#results-activity-form .activity-option .activity-label {
+    font-size: 0.75em; /* Smaller label */
 }
 
-
-/* Screen reader only class */
-.sr-only {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border: 0;
+#results-activity-form button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: auto;
+    padding: 10px 18px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    color: white;
+    background-color: #28a745;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+    margin-top: 10px;
 }
+#results-activity-form button:hover {
+    background-color: #218838;
+}
+#results-activity-form button .icon {
+    margin-right: 6px;
+    font-size: 1em;
+    line-height: 1;
+}
+
+/* --- Footer Styling (Simplified) --- */
+footer { background-color: #e9ecef; padding: 15px 0; border-top: 1px solid #dee2e6; margin-top: 40px; position: relative; }
+.footer-links { max-width: 960px; margin: 0 auto; padding: 0 25px; text-align: center; font-size: 0.85em; color: #6c757d; }
+.footer-links p { margin: 5px 0; }
+.footer-links a { color: #0056b3; text-decoration: none; margin: 0 8px; }
+.footer-links a:hover { text-decoration: underline; }
+.footer-links .attribution { margin-top: 10px; margin-bottom: 10px; font-size: 0.95em; color: #6c757d; }
+.footer-links .attribution a { color: #0056b3; }
+.footer-home-button { display: none; } /* Explicitly hide old footer button */
+
+
+/* --- Styles for Hiding Main Form When Results Are Shown --- */
+body.results-shown .intro-text,
+body.results-shown .location-form {
+    display: none;
+}
+body.results-shown #messages,
+body.results-shown .results {
+    margin-top: 15px;
+}
+
+/* --- Styles for Abridged Activity Form in Results --- */
+#results-activity-form {
+    background-color: #f8f9fa; /* Light background */
+    padding: 20px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    text-align: center;
+}
+#results-activity-form h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    color: #495057;
+    font-weight: 600;
+}
+#results-activity-form .activity-selector {
+    justify-content: center; /* Ensure centering */
+    margin-bottom: 20px;
+}
+/* Reuse activity option styles, adjust sizes if needed */
+#results-activity-form .activity-option label {
+    width: 85px;
+    height: 85px;
+    padding: 8px;
+}
+#results-activity-form .activity-option img.activity-icon {
+    width: 35px;
+    height: 35px;
+    margin-bottom: 6px;
+}
+#results-activity-form .activity-option span.activity-icon-placeholder {
+     font-size: 1.6em; width: 35px; height: 35px; line-height: 35px; margin-bottom: 6px;
+}
+#results-activity-form .activity-option .activity-label {
+    font-size: 0.8em;
+}
+
+#results-activity-form button {
+    /* Style like the main submit button */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: auto;
+    padding: 10px 18px; /* Slightly smaller padding */
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 1em; /* Slightly smaller font */
+    font-weight: 500;
+    color: white;
+    background-color: #28a745; /* Use a different color? e.g., green */
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+    margin-top: 10px; /* Space above button */
+}
+#results-activity-form button:hover {
+    background-color: #218838;
+}
+#results-activity-form button .icon {
+    margin-right: 6px;
+    font-size: 1em;
+    line-height: 1;
+}
+
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
-    .container {
-        margin: 10px;
-        padding: 15px;
+    /* No changes needed for form layout here, it's always vertical now */
+    .container { margin: 10px; padding: 15px; }
+    .header .logo-link img { max-height: 60px; max-width: 140px; }
+
+    .zip-button-wrapper {
+        flex-direction: row;
+        align-items: baseline;
     }
-    .header img {
-        max-height: 80px;
-    }
-    .prominent-item .clothing-item {
+     .form-section-zip input[type="text"] {
         max-width: 180px;
+        width: 100%;
+        margin-bottom: 10px;
     }
-    .prominent-item .clothing-item img {
-        width: 100px;
-        height: 100px;
+    .form-section-zip button {
+        width: 100%;
+        max-width: 250px;
     }
-    .other-items .clothing-item {
-        width: 95px; /* Slightly smaller on tablets */
-    }
-     .other-items .clothing-item img {
-        width: 55px;
-        height: 55px;
-    }
+
+    /* Adjust results form padding/gap further if needed */
+    #results-activity-form { padding: 12px; }
+    #results-activity-form .activity-selector { gap: 8px; }
+    #results-activity-form .activity-option label { width: 75px; height: 75px; }
+
+}
+
+    /* Results adjustments */
+    .prominent-item .clothing-item { max-width: 160px; }
+    .prominent-item .clothing-item img { width: 90px; height: 90px; }
+    .other-items .clothing-item { width: 90px; padding: 8px; }
+    .other-items .clothing-item img { width: 50px; height: 50px; }
+
+    /* current info adjustments */
     .current-info {
-        font-size: 0.9em;
+        font-size: 0.85em; /* Slightly smaller base font */
         padding: 10px;
-        gap: 3px 10px; /* Adjust gap for tablet */
+        gap: 5px 10px; /* Allow more vertical gap */
+        justify-content: flex-start; /* Align items to the start on wrap */
     }
-    .footer-content {
-        padding: 0 15px;
+    .current-info .info-item {
+         white-space: normal; /* Allow text wrapping */
+         text-align: left; /* Align text left within item */
+         flex-shrink: 1; /* Allow shrinking */
     }
-    .footer-links {
-        padding: 0 15px;
+     /* Optional: Target location specifically if needed */
+    .current-info .info-item:first-child {
+        /* Maybe make it full width on small screens? */
+        /* flex-basis: 100%; */
     }
-     .clothing-type-group {
-        gap: 12px; /* Adjust gap */
-     }
+
+    /* Adjust results form activity size if needed */
+    #results-activity-form .activity-option label {
+        width: 80px;
+        height: 80px;
+    }
+
+    .footer-links { padding: 0 15px; }
+    .clothing-type-group { gap: 10px; }
 }
 
 @media (max-width: 480px) {
-    .prominent-item .clothing-item {
+    .header { margin-bottom: 10px; padding-bottom: 8px; }
+    .header .logo-link img { max-height: 50px; max-width: 120px; }
+    
+    #results-activity-form { padding: 4px; margin-top: 25px;}
+    #results-activity-form h4 { font-size: 1em; margin-bottom: 12px;}
+    #results-activity-form .activity-selector { gap: 6px; margin-bottom: 12px;}
+    #results-activity-form .activity-option label { width: 70px; height: 70px; padding: 6px;} /* Even smaller */
+    #results-activity-form .activity-option img.activity-icon { width: 28px; height: 28px; margin-bottom: 4px;}
+    #results-activity-form .activity-option span.activity-icon-placeholder { font-size: 1.4em; width: 28px; height: 28px; line-height: 28px; margin-bottom: 4px;}
+    #results-activity-form .activity-option .activity-label { font-size: 0.7em; }
+    #results-activity-form button { font-size: 0.95em; padding: 9px 16px; }
+}
+
+    .activity-option label { width: 75px; height: 75px; padding: 6px;}
+    .activity-option img.activity-icon { width: 30px; height: 30px; margin-bottom: 4px;}
+    .activity-option span.activity-icon-placeholder { font-size: 1.5em; width: 30px; height: 30px; line-height: 30px; margin-bottom: 4px;}
+    .activity-option .activity-label { font-size: 0.75em; }
+
+    .form-section-zip input[type="text"] {
         max-width: 160px;
-        padding: 15px;
+        padding: 10px 12px;
     }
-     .prominent-item .clothing-item img {
-        width: 90px;
-        height: 90px;
-        margin-bottom: 10px;
-    }
-    .other-items .clothing-item {
-        width: 85px; /* Smaller width for phones */
-        padding: 8px;
-    }
-    .other-items .clothing-item img {
-        width: 50px;
-        height: 50px;
-    }
-     .clothing-type-group {
-         gap: 10px; /* Reduce gap on phones */
-     }
     .form-section-zip button {
-        min-width: 180px;
-        padding: 10px 20px;
-        font-size: 1em;
-    }
-     .current-info {
-        font-size: 0.88em; /* Slightly adjust font size */
-        text-align: center; /* Center align text */
-        justify-content: center; /* Center flex items */
+        max-width: 200px;
+        padding: 10px 15px; font-size: 1em;
     }
 
-    .footer-home-button {
-        font-size: 0.9em;
-        padding: 8px 15px;
+    .prominent-item .clothing-item { max-width: 140px; padding: 12px; }
+    .prominent-item .clothing-item img { width: 80px; height: 80px; margin-bottom: 8px; }
+    .other-items .clothing-item { width: 80px; padding: 6px; }
+    .other-items .clothing-item img { width: 45px; height: 45px; }
+    .clothing-type-group { gap: 8px; }
+    .current-info { font-size: 0.8em; gap: 4px 8px;}
+    .forecast-summary .forecast-content { padding: 15px; }
+    .forecast-summary h3 { font-size: 1.1em; }
+    .forecast-summary p { font-size: 0.9em; }
+
+    /* Adjust results form activity size further */
+     #results-activity-form .activity-option label {
+        width: 75px;
+        height: 75px;
     }
-    /* Forecast summary on mobile */
-    .forecast-summary .forecast-content {
-        padding: 15px; /* Reduce padding */
+    #results-activity-form button {
+         font-size: 0.95em;
+         padding: 9px 16px;
     }
-     .forecast-summary h3 {
-        font-size: 1.1em;
-    }
-     .forecast-summary p {
-        font-size: 0.9em;
-    }
-    .footer-links .attribution {
-        font-size: 0.9em; /* Slightly smaller on mobile */
-    }
+
+    .footer-links .attribution { font-size: 0.9em; }
 }
+
+
+/* --- Debug Page Specific Styles (Keep from original - should not conflict) --- */
+details { border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 25px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+summary { font-weight: 600; font-size: 1.4em; padding: 15px 20px; cursor: pointer; background-color: #f1f3f5; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; position: relative; }
+summary::marker { color: #007bff; font-size: 0.8em; }
+summary:hover { background-color: #e9ecef; }
+details[open] > summary { border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; }
+.details-content { padding: 25px; }
+
+/* Simulator V2 Styles (Debug Page) */
+.outfit-simulator-v2 { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.simulator-controls { flex: 1 1 300px; display: flex; flex-direction: column; gap: 15px; }
+.simulator-results { flex: 2 1 400px; border: 1px dashed #ced4da; padding: 15px; border-radius: 4px; min-height: 200px; background-color: #f8f9fa; }
+.simulator-controls label { font-weight: 500; margin-bottom: 3px; display: block; }
+.simulator-controls select, .simulator-controls button { padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; }
+.simulator-controls button { background-color: #007bff; color: white; cursor: pointer; font-weight: 500; margin-top: 10px;}
+.simulator-controls button:hover { background-color: #0056b3; }
+.condition-checkboxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-top: 5px; }
+.condition-checkboxes label { font-weight: normal; display: flex; align-items: center; gap: 5px; font-size: 0.9em;}
+.condition-checkboxes input[type="checkbox"] { margin: 0; }
+
+.outfit-results-display h4 { margin-top: 15px; margin-bottom: 8px; font-size: 1.1em; font-weight: 600; color: #007bff; border-bottom: none; padding-bottom: 0; }
+.outfit-results-display .prominent-item-container { text-align: center; margin-bottom: 15px; }
+.outfit-results-display .prominent-item-container h4 { color: #212529; font-size: 1em; margin-bottom: 8px;}
+.outfit-results-display .outfit-display-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; padding-left: 5px; }
+.outfit-results-display .outfit-item { border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px; text-align: center; background-color: #fff; width: 90px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; font-size: 0.9em; }
+.outfit-results-display .prominent-item-container .outfit-item { width: 110px; border: 1px solid #007bff; }
+.outfit-results-display .outfit-item img { max-width: 100%; height: 45px; object-fit: contain; margin-bottom: 5px; background-color: #f0f0f0; border-radius: 3px; }
+.outfit-results-display .prominent-item-container .outfit-item img { height: 60px; }
+.outfit-results-display .outfit-item span { font-size: 0.8em; line-height: 1.2; word-wrap: break-word; }
+.outfit-results-display .no-results { color: #6c757d; text-align: center; padding: 20px; }
+
+/* Item Grid Styles (Debug Page) */
+.items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+.item-card { border: 1px solid #ced4da; border-radius: 5px; padding: 15px; background-color: #ffffff; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; min-height: 280px; }
+.item-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+.item-card .name { font-weight: 600; font-size: 1.05em; margin-bottom: 5px; word-wrap: break-word; flex-grow: 1; color: #212529; }
+.item-card .key { font-size: 0.8em; color: #6c757d; margin-bottom: 8px; word-wrap: break-word; font-family: monospace; }
+.item-card .details { font-size: 0.75em; color: #6c757d; margin-bottom: 10px; line-height: 1.4; text-align: left; }
+.item-card .details span { display: block; margin-bottom: 2px; }
+.item-card .details strong { color: #555; }
+.item-card .image-container { margin-top: 10px; margin-bottom: 10px; position: relative; }
+.item-card img { max-width: 100%; height: 80px; object-fit: contain; background-color: #f0f0f0; border-radius: 4px; display: block; margin: 0 auto; border: 1px solid #e9ecef; }
+.item-card .path-info { font-size: 0.75em; color: #6c757d; word-wrap: break-word; margin-top: 8px; line-height: 1.3; }
+.item-card .path-info .label { font-weight: 500; color: #555; }
+.status-message { font-size: 0.75em; padding: 3px 6px; border-radius: 3px; margin-top: 8px; display: inline-block; }
+.status-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.status-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.status-info { background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+.item-card.primary-missing img { border: 2px dashed #ffc107; opacity: 0.7; }
+
+/* Fallback List Styles (Debug Page) */
+.fallback-list { padding-left: 0; list-style-type: none; }
+.fallback-list li { margin-bottom: 8px; padding: 8px 12px; border: 1px solid #e9ecef; border-radius: 4px; background-color: #fff; display: flex; align-items: center; justify-content: space-between; font-size: 0.9em; }
+.fallback-list .path { font-family: monospace; color: #333; }
+.fallback-list .status { font-weight: 500; margin-left: 15px; }
+.fallback-list .status-ok { color: #28a745; }
+.fallback-list .status-missing { color: #dc3545; }
+.fallback-list .icon { margin-right: 8px; font-size: 1.1em; }
+.fallback-list img { margin-left: 15px; height: 25px; width: 25px; object-fit: contain; vertical-align: middle; background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; }

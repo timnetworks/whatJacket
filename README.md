@@ -24,8 +24,9 @@ A simple PHP web application that suggests clothing based on the weather forecas
     *   Displays results with item images, current conditions summary, and forecast details.
     *   Features a dynamic background image based on the primary weather condition.
     *   Includes a Fahrenheit/Celsius toggle.
+    *   Vertically stacked form elements for improved usability across devices.
     *   Automatically hides the main input form when results are displayed.
-    *   Provides a "Change Activity" form on bottom of results page for quick changes of outfits in current conditions.
+    *   Provides a "Change Activity" form on the results page for quick updates.
 *   **Persistence:** Remembers the last used ZIP code, activity category, and temperature unit using PHP sessions.
 *   **Debug Tools:** Includes separate pages (`clothing-debug.php`, `outfit-simulator.php`) for inspecting clothing items and simulating outfit generation under various conditions.
 

@@ -2,9 +2,9 @@
 
 A simple PHP web application that suggests clothing based on the weather forecast for a given US ZIP code and a selected activity category.
 
-**[Live Demo](https://whatjacket.timnetworks.net/)**
+**[Live Demo Available Here](https://whatjacket.timnetworks.net/)**
 
-![Screenshot of whatJacket](https://raw.githubusercontent.com/timnetworks/whatJacket/refs/heads/main/img/screenshot.png)
+![Screenshot of whatJacket](https://raw.githubusercontent.com/timnetworks/whatJacket/refs/heads/main/img/whatjacket_screenshot.png)
 
 ## Features
 

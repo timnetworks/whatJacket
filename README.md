@@ -98,7 +98,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 
-This project is likely under the [MIT License](https://opensource.org/licenses/MIT). (Confirm by checking for a `LICENSE` file in the repository).
+This project is published under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## Acknowledgements
 
